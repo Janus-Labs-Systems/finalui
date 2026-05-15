@@ -1,0 +1,218 @@
+:root {
+  font-family: 'Open Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Preferential color scheme support; concrete colors come from App.css tokens */
+  color-scheme: light dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background effect utilities - DexBox ADV dark theme */
+.bg-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(167,139,250,0.08), rgba(139,92,246,0.04));
+}
+
+.bg-soft-pattern {
+  background-size: cover;
+  background-position: center;
+  background-image: radial-gradient(circle at 10% 20%, rgba(167,139,250,0.04), transparent 15%), 
+                    radial-gradient(circle at 90% 10%, rgba(139,92,246,0.03), transparent 12%),
+                    radial-gradient(circle at 80% 80%, rgba(167,139,250,0.02), transparent 14%);
+}
+
+.glass-panel {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, rgba(26,31,46,0.8), rgba(26,31,46,0.7));
+  backdrop-filter: blur(8px) saturate(1.05);
+  border: 1px solid rgba(167,139,250,0.15);
+  box-shadow: 0 8px 32px rgba(167,139,250,0.08);
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--accent-2);
+}
+
+/* Use theme variables declared in App.css. This ensures consistent background and
+   readable text regardless of light/dark mode. We also keep normal document flow
+   so layout components render full-width (headers/navbars won't be centered). */
+html, body, #root {
+  background-color: var(--bg, #ffffff);
+  color: var(--text, #111827);
+  font-family: 'Open Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--card-bg);
+  cursor: pointer;
+}
+button:hover,
+button:focus,
+button:focus-visible,
+button:active {
+  background: var(--card-bg) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: none !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--text);
+    background-color: var(--bg);
+  }
+  a:hover {
+    color: var(--accent-2);
+  }
+  button {
+    background-color: var(--card-bg);
+  }
+}
+
+/* Pagination Styles - positioned on right at bottom */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+.MuiPagination-root {
+  display: flex;
+  gap: 4px;
+}
+
+.MuiPaginationItem-root {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  background-color: transparent !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+}
+
+.MuiPaginationItem-root:hover {
+  background-color: rgba(167,139,250,0.1) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.MuiPaginationItem-page.Mui-selected {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+.MuiPaginationItem-ellipsis {
+  color: var(--muted) !important;
+}
+
+.MuiPaginationItem-previousNext {
+  border-color: var(--border) !important;
+}
+
+.MuiPaginationItem-previousNext:hover:not(.Mui-disabled) {
+  background-color: rgba(167,139,250,0.1) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.MuiPaginationItem-previousNext.Mui-disabled {
+  color: var(--muted) !important;
+  opacity: 0.5 !important;
+}
+
+/* Dark theme support for Material-UI components */
+.MuiTableCell-root {
+  border-bottom-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  background-color: rgba(167,139,250,0.08) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+.MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(167,139,250,0.05) !important;
+}
+
+.MuiTableRow-root.Mui-selected {
+  background-color: rgba(167,139,250,0.1) !important;
+}
+
+.MuiCheckbox-root {
+  color: var(--muted) !important;
+}
+
+.MuiCheckbox-root.Mui-checked {
+  color: var(--accent) !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root {
+  color: var(--text) !important;
+}
+
+.MuiOutlinedInput-root {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent) !important;
+}
+
+.MuiInputBase-input {
+  color: var(--text) !important;
+}
+
+.MuiInputBase-input::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.7 !important;
+}
+
+.MuiInputLabel-root {
+  color: var(--muted) !important;
+}
+
+.MuiInputLabel-root.Mui-focused {
+  color: var(--accent) !important;
+}
