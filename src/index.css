@@ -162,9 +162,13 @@ button:active {
 }
 
 .MuiTableHead-root .MuiTableCell-root {
-  background-color: rgba(167,139,250,0.08) !important;
+  background-color: #1a1f2e !important;
   color: var(--accent) !important;
   font-weight: 600 !important;
+}
+body.light-mode .MuiTableHead-root .MuiTableCell-root {
+  background-color: #f0f2f5 !important;
+  color: #7c3aed !important;
 }
 
 .MuiTableBody-root .MuiTableRow-root:hover {

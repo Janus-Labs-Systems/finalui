@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { Box, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { useEffect, useState } from "react";
+
+interface ApprovalRequestsPageProps {
+  prefetchedData?: any[];
+  initialFilter?: string;
+}
+import { Box, MenuItem, Select, InputLabel, FormControl, Checkbox, Menu, IconButton, ListItemText, TableSortLabel } from "@mui/material";
 import {
   Table,
   TableBody,
@@ -16,10 +21,11 @@ import {
   Chip,
   Tooltip,
 } from "@mui/material";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import { fetchRequestApprovals, postLockerOccupy } from "./APIService";
 import "./App.css";
 
-function ApprovalRequestsPage() {
+function ApprovalRequestsPage({ prefetchedData, initialFilter }: ApprovalRequestsPageProps) {
   type Request = {
     number: string;
     description: string;
@@ -86,7 +92,24 @@ function ApprovalRequestsPage() {
     }
   };
 
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>(initialFilter ?? "All");
+
+  const [colVisibility, setColVisibility] = useState({ date: true, duration: true, productNumber: true, lockerNumber: true });
+  const [colMenuAnchor, setColMenuAnchor] = useState<null | HTMLElement>(null);
+  const toggleCol = (key: keyof typeof colVisibility) =>
+    setColVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+
+  type SortField = "number" | "description" | "status" | "date" | "duration" | "productNumber" | "lockerNumber";
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(d => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+  };
 
   // Filtered requests by status
   const filteredRequests =
@@ -112,15 +135,35 @@ function ApprovalRequestsPage() {
           return true;
         });
 
+  const sortedRequests = sortField === null ? filteredRequests : [...filteredRequests].sort((a, b) => {
+    let cmp = 0;
+    if (sortField === "number")        cmp = (a.number ?? "").localeCompare(b.number ?? "");
+    else if (sortField === "description") cmp = (a.description ?? "").localeCompare(b.description ?? "");
+    else if (sortField === "status")   cmp = (a.status ?? "").localeCompare(b.status ?? "");
+    else if (sortField === "date") {
+      const da = parseApiDate(a.date)?.getTime() ?? 0;
+      const db = parseApiDate(b.date)?.getTime() ?? 0;
+      cmp = da - db;
+    }
+    else if (sortField === "duration") cmp = (a.requestedDuration ?? "").localeCompare(b.requestedDuration ?? "");
+    else if (sortField === "productNumber") cmp = ((a.qtId ?? 0) as number) - ((b.qtId ?? 0) as number);
+    else if (sortField === "lockerNumber")  cmp = (a.locker ?? "").localeCompare(b.locker ?? "");
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
   useEffect(() => {
     let mounted = true;
-
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        const userId = sessionStorage.getItem("userId") ?? "";
-        const data = await fetchRequestApprovals(userId);
+        let data = prefetchedData;
+
+        // Only fetch from API if no prefetched data is available
+        if (!data || !Array.isArray(data) || data.length === 0) {
+          const userId = sessionStorage.getItem("userId") ?? "";
+          data = await fetchRequestApprovals(userId);
+        }
         console.log("fetchRequestApprovals (raw):", data);
         if (!mounted) return;
         setRawData(data);
@@ -327,7 +370,6 @@ function ApprovalRequestsPage() {
     doApply();
   };
 
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const bgColor = 'var(--bg)';
   const paperBg = 'var(--card-bg)';
   const textColor = 'var(--text)';
@@ -346,7 +388,7 @@ function ApprovalRequestsPage() {
         p: 0,
         boxSizing: "border-box",
         position: "relative",
-        paddingTop: "calc(var(--topbar-height,64px) + 20px)",
+        paddingTop: 0,
         fontFamily: "'Open Sans', Inter, Roboto, 'Segoe UI', Arial, sans-serif",
         overflowX: "hidden",
         overflowY: "auto",
@@ -400,31 +442,66 @@ function ApprovalRequestsPage() {
             Review and manage item/locker approval requests below.
           </div>
         </Box>
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: 180,
-            background: "var(--muted-bg)",
-            borderRadius: 2,
-          }}
-        >
-          <InputLabel id="status-filter-label">Filter by Status</InputLabel>
-          <Select
-            labelId="status-filter-label"
-            id="status-filter"
-            value={statusFilter}
-            label="Filter by Status"
-            onChange={(e) => setStatusFilter(e.target.value)}
-            sx={{ fontWeight: 600 }}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FormControl
+            size="small"
+            sx={{ minWidth: 180, background: "var(--muted-bg)", borderRadius: 2 }}
           >
-            <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Declined">Declined</MenuItem>
-            <MenuItem value="Return Init.">Return Init.</MenuItem>
-            <MenuItem value="Returned">Returned</MenuItem>
-          </Select>
-        </FormControl>
+            <InputLabel id="status-filter-label">Filter by Status</InputLabel>
+            <Select
+              labelId="status-filter-label"
+              id="status-filter"
+              value={statusFilter}
+              label="Filter by Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
+              sx={{ fontWeight: 600 }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Approved">Approved</MenuItem>
+              <MenuItem value="Declined">Declined</MenuItem>
+              <MenuItem value="Return Init.">Return Init.</MenuItem>
+              <MenuItem value="Returned">Returned</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Tooltip title="Show/hide columns">
+            <IconButton
+              size="small"
+              className="col-filter-btn"
+              onClick={(e) => setColMenuAnchor(e.currentTarget)}
+              sx={{
+                border: "1px solid #b4d7ff",
+                borderRadius: 1,
+                p: 0.8,
+                color: "#b4d7ff",
+                "&:hover": { backgroundColor: "rgba(24,119,242,0.08)" },
+              }}
+            >
+              <ViewColumnIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={colMenuAnchor}
+            open={Boolean(colMenuAnchor)}
+            onClose={() => setColMenuAnchor(null)}
+            slotProps={{ paper: { className: "col-filter-menu", sx: { minWidth: 190, background: "var(--card-bg)", color: "var(--text)", border: "1px solid var(--border)" } } }}
+          >
+            {(
+              [
+                { key: "date",          label: "Date" },
+                { key: "duration",      label: "Duration" },
+                { key: "productNumber", label: "Product Number" },
+                { key: "lockerNumber",  label: "Locker Number" },
+              ] as { key: keyof typeof colVisibility; label: string }[]
+            ).map(({ key, label }) => (
+              <MenuItem key={key} onClick={() => toggleCol(key)} dense sx={{ gap: 0.5, color: "var(--text)", "&:hover": { background: "rgba(24,119,242,0.08)" } }}>
+                <Checkbox checked={colVisibility[key]} size="small" sx={{ p: 0.5, color: "#b4d7ff" }} />
+                <ListItemText primary={label} />
+              </MenuItem>
+            ))}
+          </Menu>
+        </Box>
       </Box>
 
       <Box
@@ -443,15 +520,19 @@ function ApprovalRequestsPage() {
           component={Paper}
           sx={{
             width: "100%",
-            minHeight: 520,
+            maxHeight: "calc(100vh - 260px)",
             boxSizing: "border-box",
             m: 0,
             borderRadius: 3,
             background: paperBg,
             overflowX: "auto",
-            overflowY: "visible",
-            p: { xs: 2, sm: 3 },
+            overflowY: "auto",
+            p: 0,
             boxShadow: 'var(--card-shadow)',
+            "&::-webkit-scrollbar": { width: "8px", height: "8px" },
+            "&::-webkit-scrollbar-track": { background: "rgba(0,0,0,0.1)", borderRadius: "4px" },
+            "&::-webkit-scrollbar-thumb": { background: "rgba(167,139,250,0.4)", borderRadius: "4px" },
+            "&::-webkit-scrollbar-thumb:hover": { background: "rgba(167,139,250,0.7)" },
           }}
         >
           {loading ? (
@@ -503,7 +584,6 @@ function ApprovalRequestsPage() {
             </Box>
           ) : (
             <Table
-              stickyHeader
               sx={{
                 width: "100%",
                 minWidth: "100%",
@@ -513,45 +593,59 @@ function ApprovalRequestsPage() {
                 whiteSpace: "nowrap",
               }}
             >
-                <TableHead sx={{ background: "var(--muted-bg)" }}>
+                <TableHead sx={{
+                  "& .MuiTableCell-root": {
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 4,
+                    backgroundColor: "#1a1f2e",
+                    backgroundImage: "none",
+                    borderBottom: "2px solid rgba(167,139,250,0.3)",
+                  }
+                }}>
                 <TableRow>
-                  <TableCell sx={{ padding: largeCellPadding, width: "12%" }}>
-                    Request Number
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "32%" }}>
-                    Request Description
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "10%" }}>
-                    Status
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "12%" }}>
-                    Date
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "8%" }}>
-                    Duration
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "8%" }}>
-                    Product Number
-                  </TableCell>
-                  <TableCell sx={{ padding: largeCellPadding, width: "10%" }}>
-                    Locker Number
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      padding: largeCellPadding,
-                      width: "8%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    Action
-                  </TableCell>
+                  {([
+                    { field: "number"      as SortField, label: "Request Number",      width: "12%" },
+                    { field: "description" as SortField, label: "Request Description", width: "32%" },
+                    { field: "status"      as SortField, label: "Status",              width: "10%" },
+                  ]).map(col => (
+                    <TableCell key={col.field} sx={{ padding: largeCellPadding, width: col.width }}>
+                      <TableSortLabel
+                        active={sortField === col.field}
+                        direction={sortField === col.field ? sortDir : "asc"}
+                        onClick={() => handleSort(col.field)}
+                        sx={{ color: "inherit", "& .MuiTableSortLabel-icon": { color: "inherit !important" } }}
+                      >
+                        {col.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                  {colVisibility.date && (
+                    <TableCell sx={{ padding: largeCellPadding, width: "12%" }}>
+                      <TableSortLabel active={sortField === "date"} direction={sortField === "date" ? sortDir : "asc"} onClick={() => handleSort("date")} sx={{ color: "inherit", "& .MuiTableSortLabel-icon": { color: "inherit !important" } }}>Date</TableSortLabel>
+                    </TableCell>
+                  )}
+                  {colVisibility.duration && (
+                    <TableCell sx={{ padding: largeCellPadding, width: "8%" }}>
+                      <TableSortLabel active={sortField === "duration"} direction={sortField === "duration" ? sortDir : "asc"} onClick={() => handleSort("duration")} sx={{ color: "inherit", "& .MuiTableSortLabel-icon": { color: "inherit !important" } }}>Duration</TableSortLabel>
+                    </TableCell>
+                  )}
+                  {colVisibility.productNumber && (
+                    <TableCell sx={{ padding: largeCellPadding, width: "8%" }}>
+                      <TableSortLabel active={sortField === "productNumber"} direction={sortField === "productNumber" ? sortDir : "asc"} onClick={() => handleSort("productNumber")} sx={{ color: "inherit", "& .MuiTableSortLabel-icon": { color: "inherit !important" } }}>Product Number</TableSortLabel>
+                    </TableCell>
+                  )}
+                  {colVisibility.lockerNumber && (
+                    <TableCell sx={{ padding: largeCellPadding, width: "10%" }}>
+                      <TableSortLabel active={sortField === "lockerNumber"} direction={sortField === "lockerNumber" ? sortDir : "asc"} onClick={() => handleSort("lockerNumber")} sx={{ color: "inherit", "& .MuiTableSortLabel-icon": { color: "inherit !important" } }}>Locker Number</TableSortLabel>
+                    </TableCell>
+                  )}
+                  <TableCell sx={{ padding: largeCellPadding, width: "8%", textAlign: "center" }}>Action</TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
-                {filteredRequests.map((req, i) => (
+                {sortedRequests.map((req, i) => (
                   <TableRow
                     key={`${req.number}-${i}`}
                     sx={{
@@ -637,18 +731,10 @@ function ApprovalRequestsPage() {
                         );
                       })()}
                     </TableCell>
-                    <TableCell sx={{ padding: cellPadding }}>
-                      {req.date}
-                    </TableCell>
-                    <TableCell sx={{ padding: cellPadding }}>
-                      {req.requestedDuration ?? "-"}
-                    </TableCell>
-                    <TableCell sx={{ padding: cellPadding }}>
-                      {req.qtId != null ? String(req.qtId) : "-"}
-                    </TableCell>
-                    <TableCell sx={{ padding: cellPadding }}>
-                      {req.locker}
-                    </TableCell>
+                    {colVisibility.date          && <TableCell sx={{ padding: cellPadding }}>{req.date}</TableCell>}
+                    {colVisibility.duration      && <TableCell sx={{ padding: cellPadding }}>{req.requestedDuration ?? "-"}</TableCell>}
+                    {colVisibility.productNumber && <TableCell sx={{ padding: cellPadding }}>{req.qtId != null ? String(req.qtId) : "-"}</TableCell>}
+                    {colVisibility.lockerNumber  && <TableCell sx={{ padding: cellPadding }}>{req.locker}</TableCell>}
                     <TableCell
                       sx={{
                         padding: cellPadding,
@@ -669,6 +755,7 @@ function ApprovalRequestsPage() {
                               color: "var(--white)",
                               fontWeight: 700,
                               borderRadius: 2,
+                              border: "2px solid rgba(255,255,255,0.6)",
                               boxShadow: 'var(--card-shadow)',
                               px: { xs: 1, sm: 1.5 },
                               py: { xs: 0.75, sm: 0.5 },
@@ -677,6 +764,7 @@ function ApprovalRequestsPage() {
                               textTransform: "none",
                               whiteSpace: "nowrap",
                               boxSizing: "border-box",
+                              "&:hover": { backgroundColor: "var(--accent)", border: "2px solid #fff" },
                             }}
                           >
                             Approve
@@ -722,13 +810,15 @@ function ApprovalRequestsPage() {
       <Dialog
         open={open}
         onClose={closeDetails}
-        PaperProps={{
-          style: {
+        slotProps={{
+          paper: {
+            style: {
             background: paperBg,
             color: textColor,
             minWidth: 340,
             borderRadius: 12,
             boxShadow: 'var(--card-shadow)',
+          },
           },
         }}
       >

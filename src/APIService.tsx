@@ -2,6 +2,21 @@ import axios from "axios";
 
 const API_BASE_URL = "https://dexbox-api-e6bzexe9ezdjgfh9.centralindia-01.azurewebsites.net/api";
 
+// Interface for inventory data
+export interface InventoryItem {
+  productId: string;
+  productName: string;
+  serialNumber: string;
+  lockerLocation: string;
+  lockerId: string;
+  quantity: number;
+  category: string;
+  subCategory: string;
+  lastCalibration: string;
+  nextCalibration: string;
+  purchaseDate: string;
+}
+
 // Helper to get token from sessionStorage
 function getSessionToken(): string | null {
   return sessionStorage.getItem("token");
@@ -792,4 +807,133 @@ export async function fetchAppUsers(): Promise<any[]> {
     "fetchAppUsers: no data returned from GetAppUserForManager or fallback endpoints"
   );
   return [];
+}
+
+// Fetch inventory data from GetCatalogueManager endpoint
+export async function fetchInventory(): Promise<InventoryItem[]> {
+  const token = getSessionToken();
+  try {
+    // Fetch all inventory data from GetCatalogueManager endpoint
+    const resp = await axios.get(`${API_BASE_URL}/GetCatalogueManager`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    const data = Array.isArray(resp.data) ? resp.data : [];
+
+    // Helper to get calibration value with multiple possible field names
+    const getCaliValue = (item: any, which: "last" | "upcoming") => {
+      if (!item) return null;
+      const lastKeys = [
+        "CaliDateLast",
+        "Cali_DateLast",
+        "CaliDate_Last",
+        "caliDateLast",
+        "LastCalibration",
+        "LastCali",
+        "CaliLast",
+        "lastCalibration",
+        "lastcalibration",
+      ];
+      const nextKeys = [
+        "CaliDateUpcoming",
+        "Cali_DateUpcoming",
+        "CaliDate_Upcoming",
+        "caliDateUpcoming",
+        "NextCalibration",
+        "NextCali",
+        "CaliUpcoming",
+        "nextCalibration",
+        "nextcalibration",
+      ];
+      const keys = which === "last" ? lastKeys : nextKeys;
+      
+      // First try exact matches
+      for (const k of keys) {
+        if (item[k] !== undefined && item[k] !== null) return item[k];
+      }
+      
+      // If no exact match, try to find any key containing the keyword
+      const keyword = which === "last" ? "last" : "next";
+      for (const key of Object.keys(item)) {
+        if (key.toLowerCase().includes(keyword) && 
+            key.toLowerCase().includes("cali") &&
+            item[key] !== undefined && 
+            item[key] !== null &&
+            item[key] !== "") {
+          return item[key];
+        }
+      }
+      
+      return null;
+    };
+
+    // Helper to get subcategory with multiple possible field names
+    const getSubcategory = (item: any) => {
+      if (!item) return "N/A";
+      const keys = [
+        "Subcategory",
+        "Sub_Category",
+        "SubCategory",
+        "subcategory",
+        "sub_category",
+        "subCategory",
+      ];
+      
+      // First try exact matches
+      for (const k of keys) {
+        if (item[k] !== undefined && item[k] !== null && item[k] !== "") return item[k];
+      }
+      
+      // If no exact match, try to find any key containing "sub"
+      for (const key of Object.keys(item)) {
+        if (key.toLowerCase().includes("sub") && 
+            key.toLowerCase().includes("cat") &&
+            item[key] !== undefined && 
+            item[key] !== null &&
+            item[key] !== "") {
+          return item[key];
+        }
+      }
+      
+      return "N/A";
+    };
+
+    // Normalize locker key helper
+    const normalizeLockerKey = (raw: any): string => {
+      if (!raw) return "";
+      const str = String(raw);
+      const num = str.replace(/\D/g, "");
+      return num || str;
+    };
+
+    const records: InventoryItem[] = [];
+
+    // Process data from GetCatalogueManager endpoint
+    data.forEach((item: any) => {
+      const lastCal = getCaliValue(item, "last");
+      const nextCal = getCaliValue(item, "upcoming");
+      const subCat = getSubcategory(item);
+      const lockerId = normalizeLockerKey(item.LockerId || item.lockerId || item.Locker_Id || item.locker_Id || "");
+      const location = item.Location || item.location || "Unknown";
+      
+      records.push({
+        productId: item.ProductId || item.productId || item.id || "N/A",
+        productName: item.ProductName || item.productName || item.name || "N/A",
+        serialNumber: item.SerialNumber || item.serialNumber || "N/A",
+        lockerLocation: location,
+        lockerId: lockerId,
+        quantity: item.Quantity || item.quantity || 1,
+        category: item.Category || item.category || "N/A",
+        subCategory: subCat,
+        lastCalibration: lastCal || "N/A",
+        nextCalibration: nextCal || "N/A",
+        purchaseDate: item.PurchaseDate || item.purchaseDate || "N/A",
+      });
+    });
+
+    return records;
+  } catch (err) {
+    console.error("fetchInventory error:", err);
+    return [];
+  }
 }

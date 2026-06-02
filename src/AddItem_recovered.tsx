@@ -40,6 +40,9 @@ export default function AddItemPage() {
   const [subcategory, setSubcategory] = useState("");
   const [itemName, setItemName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [csvSuccess, setCsvSuccess] = useState(false);
+  const [csvProcessing, setCsvProcessing] = useState(false);
   const [quantity, setQuantity] = useState<number>(1);
   const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -580,20 +583,107 @@ export default function AddItemPage() {
 
   return (
     <div className="page-shell" style={{ minHeight: "calc(100vh - 72px)" }}>
-      <div className="content-wrap panel" style={{ background: "var(--card-bg)", padding: 40, borderRadius: 12, boxShadow: "var(--card-shadow)", minWidth: 640, maxWidth: "920px", width: "min(92vw, 920px)" }}>
-        <h1
-          style={{
-            marginBottom: 8,
-            fontFamily: "'Open Sans', Inter, Roboto, Arial, sans-serif",
-            fontWeight: 700,
-            fontStyle: "italic",
-          }}
-        >
-          Add Item
-        </h1>
-        <h3 style={{ marginBottom: 24, color: "var(--muted)", fontStyle: "italic" }}>
-          Add a new item with category and subcategory
-        </h3>
+      <div className="content-wrap panel" style={{ background: "var(--card-bg)", padding: "clamp(14px, 4vw, 40px)", borderRadius: 12, boxShadow: "var(--card-shadow)", minWidth: 0, maxWidth: "920px", width: "min(96vw, 920px)" }}>
+        <div className="add-item-header-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16 }}>
+          <div>
+            <h1 style={{ marginBottom: 8, fontFamily: "'Open Sans', Inter, Roboto, Arial, sans-serif", fontWeight: 700 }}>
+              Add Item
+            </h1>
+            <h3 style={{ margin: 0, color: "var(--muted)", fontStyle: "italic" }}>
+              Add a new item with category and subcategory
+            </h3>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexShrink: 0, marginTop: 4 }}>
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ minHeight: 40, px: 2, py: 0.8, background: "#b4d7ff !important", color: "#1a2744 !important", fontSize: 13, textTransform: "none", "&:hover": { background: "#b4d7ff !important" } }}
+            >
+              Upload Documents / CSV
+              <input
+                type="file"
+                hidden
+                multiple
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv"
+                onChange={async (e) => {
+                  setCsvError(null);
+                  setCsvSuccess(false);
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+                  const csvFile = Array.from(files).find((f) => f.name.toLowerCase().endsWith(".csv"));
+                  if (!csvFile) { console.log("Non-CSV files selected:", files); return; }
+                  setCsvProcessing(true);
+                  try {
+                    const text = await csvFile.text();
+                    const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+                    if (lines.length < 2) { setCsvError("Incomplete CSV — file has no data rows."); setCsvProcessing(false); return; }
+                    const REQUIRED_HEADERS = ["ProductServerId", "SerialNumber", "CategoryId", "SubCategoryId"];
+                    const rawHeaders = lines[0].split(",").map((h) => h.trim());
+                    const headerLower = rawHeaders.map((h) => h.toLowerCase());
+                    const missing = REQUIRED_HEADERS.filter((rh) => !headerLower.includes(rh.toLowerCase()));
+                    if (missing.length > 0) { setCsvError(`Incomplete CSV — missing required columns: ${missing.join(", ")}`); setCsvProcessing(false); return; }
+                    const colIndex = (name: string) => rawHeaders.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+                    const idxProductServerId = colIndex("ProductServerId");
+                    const idxSerialNumber    = colIndex("SerialNumber");
+                    const idxDisplayName     = colIndex("DisplayName");
+                    const idxCategoryId      = colIndex("CategoryId");
+                    const idxSubCategoryId   = colIndex("SubCategoryId");
+                    const idxLockerId        = colIndex("LockerId");
+                    const dataRows = lines.slice(1);
+                    const items: any[] = [];
+                    const rowErrors: string[] = [];
+                    dataRows.forEach((line, i) => {
+                      const cols = line.split(",").map((c) => c.trim());
+                      const rowNum = i + 2;
+                      const productServerId = cols[idxProductServerId] ?? "";
+                      const serialNumber    = cols[idxSerialNumber] ?? "";
+                      const displayName     = idxDisplayName >= 0 ? (cols[idxDisplayName] ?? "") : "";
+                      const categoryId      = cols[idxCategoryId] ?? "";
+                      const subCategoryId   = cols[idxSubCategoryId] ?? "";
+                      const lockerId        = idxLockerId >= 0 ? (cols[idxLockerId] ?? "") : "";
+                      if (!productServerId) rowErrors.push(`Row ${rowNum}: ProductServerId is empty`);
+                      if (!serialNumber)    rowErrors.push(`Row ${rowNum}: SerialNumber is empty`);
+                      if (!categoryId)      rowErrors.push(`Row ${rowNum}: CategoryId is empty`);
+                      if (!subCategoryId)   rowErrors.push(`Row ${rowNum}: SubCategoryId is empty`);
+                      const psid  = Number(productServerId);
+                      const catId = Number(categoryId);
+                      const subId = Number(subCategoryId);
+                      if (productServerId && isNaN(psid))  rowErrors.push(`Row ${rowNum}: ProductServerId must be a number`);
+                      if (categoryId && isNaN(catId))      rowErrors.push(`Row ${rowNum}: CategoryId must be a number`);
+                      if (subCategoryId && isNaN(subId))   rowErrors.push(`Row ${rowNum}: SubCategoryId must be a number`);
+                      if (rowErrors.every((err) => !err.startsWith(`Row ${rowNum}`))) {
+                        items.push({ ProductServerId: psid, productServerId: psid, ProductServerID: psid, productserverid: psid, SerialNumber: serialNumber || null, Name: displayName || null, CategoryId: isNaN(catId) ? null : catId, SubCategoryId: isNaN(subId) ? null : subId, LockerId: lockerId && !isNaN(Number(lockerId)) ? Number(lockerId) : null });
+                      }
+                    });
+                    if (rowErrors.length > 0) { setCsvError("Incomplete CSV — " + rowErrors[0] + (rowErrors.length > 1 ? ` (+${rowErrors.length - 1} more issues)` : "")); setCsvProcessing(false); return; }
+                    if (items.length === 0) { setCsvError("Incomplete CSV — no valid rows found."); setCsvProcessing(false); return; }
+                    const res = await insertCataloguesBulk(items);
+                    if (res == null) { setCsvError("CSV upload failed — server rejected the data. Check console."); setCsvProcessing(false); return; }
+                    setCsvSuccess(true);
+                  } catch (err) { console.error("CSV parse/upload error:", err); setCsvError("Failed to process CSV file."); } finally { setCsvProcessing(false); e.target.value = ""; }
+                }}
+              />
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                const header = "ProductServerId,SerialNumber,DisplayName,CategoryId,SubCategoryId,LockerId";
+                const sample = "42,SN-001,Daimler Wrench 200w,3,7,1";
+                const csv = `${header}\n${sample}\n`;
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "add_items_template.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              sx={{ minHeight: 40, px: 2, py: 0.8, backgroundColor: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, border: "2px solid rgba(255,255,255,0.3)", "&:hover": { backgroundColor: "var(--accent)", opacity: 0.9 }, textTransform: "none" }}
+            >
+              Download CSV pattern
+            </Button>
+          </div>
+        </div>
 
         {loadingCategories ? (
           <div style={{ padding: 24, textAlign: "center" }}>
@@ -616,7 +706,7 @@ export default function AddItemPage() {
               >
                 Category
               </label>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className="add-item-field-row" style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <select
                   value={String(selectedCategoryId ?? "")}
                   onChange={(e) => {
@@ -646,6 +736,8 @@ export default function AddItemPage() {
                     marginTop: "4px",
                     borderRadius: "4px",
                     border: "1px solid var(--border)",
+                    background: "var(--card-bg)",
+                    color: "var(--text)",
                   }}
                   required
                 >
@@ -703,6 +795,8 @@ export default function AddItemPage() {
                   marginTop: "4px",
                   borderRadius: "4px",
                   border: "1px solid var(--border)",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
                 }}
                 required
               >
@@ -726,7 +820,7 @@ export default function AddItemPage() {
               >
                 Item
               </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="add-item-field-row" style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <select
                   value={String(selectedItemId || itemName)}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -798,6 +892,8 @@ export default function AddItemPage() {
                     marginTop: "4px",
                     borderRadius: "4px",
                     border: "1px solid var(--border)",
+                    background: "var(--card-bg)",
+                    color: "var(--text)",
                   }}
                   required
                   disabled={!category || !subcategory}
@@ -821,33 +917,6 @@ export default function AddItemPage() {
                       )
                     : null}
                 </select>
-                <div>
-                  {selectedItemServerId == null ? (
-                    <div
-                      style={{
-                        color: "var(--danger)",
-                        fontSize: 12,
-                        fontStyle: "italic",
-                      }}
-                    >
-                      Note: selected item has no numeric ProductServerId. Bulk
-                      inserts will be blocked until an existing catalogue item
-                      is chosen.
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        color: "var(--info)",
-                        fontSize: 12,
-                        fontStyle: "italic",
-                      }}
-                    >
-                      ProductServerId: {selectedItemServerId}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <Button
                   size="small"
                   variant="outlined"
@@ -885,6 +954,33 @@ export default function AddItemPage() {
                   New Item
                 </Button>
               </div>
+              <div>
+                {selectedItemServerId == null ? (
+                  <div
+                    style={{
+                      color: "var(--danger)",
+                      fontSize: 12,
+                      fontStyle: "italic",
+                      marginTop: 8,
+                    }}
+                  >
+                    Note: selected item has no numeric ProductServerId. Bulk
+                    inserts will be blocked until an existing catalogue item
+                    is chosen.
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: "var(--info)",
+                      fontSize: 12,
+                      fontStyle: "italic",
+                      marginTop: 8,
+                    }}
+                  >
+                    ProductServerId: {selectedItemServerId}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -906,13 +1002,15 @@ export default function AddItemPage() {
                   setQuantity(Number(e.target.value))
                 }
                 style={{
-                  width: "100%",
+                  width: "70%",
                   padding: "8px",
                   height: 40,
                   boxSizing: "border-box",
                   marginTop: "4px",
                   borderRadius: "4px",
                   border: "1px solid var(--border)",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
                 }}
                 required
               />
@@ -954,6 +1052,8 @@ export default function AddItemPage() {
                   marginTop: "4px",
                   borderRadius: "4px",
                   border: "1px solid var(--border)",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
                 }}
               >
                 <option value="">(none)</option>
@@ -1008,6 +1108,8 @@ export default function AddItemPage() {
                           boxSizing: "border-box",
                           borderRadius: "4px",
                           border: "1px solid var(--border)",
+                          background: "var(--card-bg)",
+                          color: "var(--text)",
                         }}
                       />
                       <input
@@ -1028,6 +1130,8 @@ export default function AddItemPage() {
                           boxSizing: "border-box",
                           borderRadius: "4px",
                           border: "1px solid var(--border)",
+                          background: "var(--card-bg)",
+                          color: "var(--text)",
                         }}
                       />
                     </div>
@@ -1045,12 +1149,11 @@ export default function AddItemPage() {
               >
                 Cancel
               </Button>
-
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
-                sx={{ flex: 1, minHeight: 44, py: 1 }}
+                sx={{ minHeight: 44, px: 3 }}
                 disabled={
                   !category ||
                   !subcategory ||
@@ -1066,11 +1169,25 @@ export default function AddItemPage() {
                   : "Add Item"}
               </Button>
             </div>
+
+            {csvProcessing && (
+              <div style={{ color: "var(--accent)", marginTop: 12, textAlign: "center", fontSize: 14 }}>
+                Processing CSV...
+              </div>
+            )}
+            {csvError && (
+              <div style={{ color: "var(--danger, #ff5252)", marginTop: 12, padding: "10px 14px", background: "rgba(255,82,82,0.08)", borderRadius: 6, border: "1px solid rgba(255,82,82,0.3)", fontSize: 13 }}>
+                ⚠ {csvError}
+              </div>
+            )}
+            {csvSuccess && (
+              <div style={{ color: "var(--success, #4caf50)", marginTop: 12, padding: "10px 14px", background: "rgba(76,175,80,0.08)", borderRadius: 6, border: "1px solid rgba(76,175,80,0.3)", fontSize: 13 }}>
+                ✓ CSV uploaded successfully — all items added.
+              </div>
+            )}
             {submitted && (
-              <div
-                style={{ color: "var(--success)", marginTop: 16, textAlign: "center" }}
-              >
-                  Item added successfully
+              <div style={{ color: "var(--success)", marginTop: 16, textAlign: "center" }}>
+                Item added successfully
               </div>
             )}
           </form>
@@ -1231,6 +1348,10 @@ export default function AddItemPage() {
                   height: 40,
                   boxSizing: "border-box",
                   marginTop: "4px",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 4,
                 }}
               >
                 <option value="">(none)</option>
@@ -1267,6 +1388,10 @@ export default function AddItemPage() {
                   height: 40,
                   boxSizing: "border-box",
                   marginTop: "4px",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 4,
                 }}
               >
                 <option value="">(none)</option>
@@ -1289,6 +1414,10 @@ export default function AddItemPage() {
                   height: 40,
                   boxSizing: "border-box",
                   marginTop: "4px",
+                  background: "var(--card-bg)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 4,
                 }}
               >
                 <option value="">(none)</option>

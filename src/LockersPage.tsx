@@ -37,28 +37,18 @@ import ErrorIcon from "@mui/icons-material/Error";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import type { Locker } from "./Locker.tsx";
 
-// If you want to split, but here we do CSS-in-JSX
-
-interface DynamicTablesProps {
-  onLockerSelect: (locker: Locker) => void;
-  searchQuery?: string;
-  token: string;
-}
-
 const CARDS_PER_PAGE = 4;
 
-const DynamicTables = ({
-  onLockerSelect,
-  searchQuery: externalSearchQuery,
-  token,
-}: DynamicTablesProps) => {
+interface LockersPageProps {
+  initialSearch?: string;
+}
+
+const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
   // Use live data hook
   const liveData = useLiveLoadData();
   const [groupedData, setGroupedData] = useState<
     Record<string | number, Locker[]>
   >({});
-  // Use only the searchQuery prop from parent (App.tsx)
-  const searchQuery = externalSearchQuery ?? "";
 
   const [allCatalogue, setAllCatalogue] = useState<any[]>([]);
   const [lockerProductsMap, setLockerProductsMap] = useState<
@@ -73,6 +63,7 @@ const DynamicTables = ({
     null
   );
   const [productSearch, setProductSearch] = useState<string>("");
+  const [universalSearch, setUniversalSearch] = useState<string>(initialSearch ?? "");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLast, setEditLast] = useState<string>("");
   const [editNext, setEditNext] = useState<string>("");
@@ -145,10 +136,10 @@ const DynamicTables = ({
     let mounted = true;
     const load = async () => {
       try {
-        console.log("Message.tsx: fetching catalogue...");
+        console.log("LockersPage.tsx: fetching catalogue...");
         const data = await fetchCatalogue();
         console.log(
-          "Message.tsx: catalogue fetched, items:",
+          "LockersPage.tsx: catalogue fetched, items:",
           Array.isArray(data) ? data.length : typeof data
         );
         if (!mounted) return;
@@ -181,31 +172,70 @@ const DynamicTables = ({
   // Filtered and paged master lockers
   const filteredGroupedData = Object.entries(groupedData)
     .map(([mlockerId, lockers]) => {
-      const filteredLockers = lockers.filter(
-        (locker) =>
-          // Include prefix MADV for master locker search
-          `MADV${mlockerId}`
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          // Include prefix ADV00 for locker search
-          `ADV00${locker.locker_Id}`
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          mlockerId
-            .toString()
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          locker.locker_Id
-            .toString()
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
+      const searchQuery = universalSearch.toLowerCase().trim();
+      
+      // If no search query, show all
+      if (!searchQuery) {
+        return [mlockerId, lockers];
+      }
+
+      // Search across ALL products in catalogue to find matching products
+      const matchingProductIds = new Set<string>();
+      if (searchQuery) {
+        allCatalogue.forEach((product: any) => {
+          const fields = [
+            product.ProductId || product.productId || product.id || "",
+            product.ProductName || product.productName || product.name || "",
+            product.SerialNumber || product.serialNumber || "",
+            product.Category || product.category || "",
+            product.Subcategory || product.subcategory || "",
+          ];
+          const matches = fields.some((field) => 
+            String(field).toLowerCase().includes(searchQuery)
+          );
+          if (matches) {
+            const pid = product.ProductId || product.productId || product.id || "";
+            if (pid) matchingProductIds.add(String(pid));
+          }
+        });
+      }
+
+      const filteredLockers = lockers.filter((locker) => {
+        // Search in locker IDs
+        const lockerIdMatch = 
+          `MADV${mlockerId}`.toLowerCase().includes(searchQuery) ||
+          `ADV00${locker.locker_Id}`.toLowerCase().includes(searchQuery) ||
+          mlockerId.toString().toLowerCase().includes(searchQuery) ||
+          locker.locker_Id.toString().toLowerCase().includes(searchQuery);
+
+        // Search in products for this locker - check if any product matches
+        const lockerProducts = getProductsForLockerId(locker.locker_Id);
+        const productMatch = lockerProducts.some((product: any) => {
+          const fields = [
+            product.ProductId || product.productId || product.id || "",
+            product.ProductName || product.productName || product.name || "",
+            product.SerialNumber || product.serialNumber || "",
+            product.Category || product.category || "",
+            product.Subcategory || product.subcategory || "",
+          ];
+          return fields.some((field) => 
+            String(field).toLowerCase().includes(searchQuery)
+          );
+        });
+
+        // Search in locker properties
+        const lockerPropMatch = 
           (typeof locker.locker_size === "string" &&
-            locker.locker_size
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())) ||
+            locker.locker_size.toLowerCase().includes(searchQuery)) ||
           (typeof locker.status === "string" &&
-            locker.status.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+            locker.status.toLowerCase().includes(searchQuery)) ||
+          ((locker as any).location && typeof (locker as any).location === "string" &&
+            (locker as any).location.toLowerCase().includes(searchQuery)) ||
+          ((locker as any).Location && typeof (locker as any).Location === "string" &&
+            (locker as any).Location.toLowerCase().includes(searchQuery));
+
+        return lockerIdMatch || productMatch || lockerPropMatch;
+      });
       return filteredLockers.length > 0 ? [mlockerId, filteredLockers] : null;
     })
     .filter(Boolean) as [string | number, Locker[]][];
@@ -399,7 +429,7 @@ const DynamicTables = ({
       totalProducts += pCount;
       if (pCount === 0) emptyLockerCount++;
 
-      const sizeRaw = String(l.locker_size ?? l.LockerSize ?? l.size ?? "").toLowerCase();
+      const sizeRaw = String(l.locker_size ?? "").toLowerCase();
       if (sizeRaw.includes("micro")) sizeCounts.Micro++;
       else if (sizeRaw.includes("mini")) sizeCounts.Mini++;
       else if (sizeRaw.includes("macro")) sizeCounts.Macro++;
@@ -407,12 +437,7 @@ const DynamicTables = ({
       else sizeCounts.Other++;
     }
 
-    const loc =
-      lockers[0]?.Location ??
-      lockers[0]?.location ??
-      lockers[0]?.LockerLocation ??
-      lockers[0]?.site ??
-      "Unknown";
+    const loc = "Unknown";
 
     return {
       totalLockers,
@@ -425,9 +450,37 @@ const DynamicTables = ({
 
   return (
     <>
-      <div className="dt-root-x">
+      <div className="dt-root-x" style={{
+        maxHeight: "calc(100vh - 80px)",
+        overflowY: "auto",
+        overflowX: "hidden",
+      }}>
         <div className="dt-header-row-x">
-          <div className="dt-title-x">DexBox LIVE</div>
+          <div className="dt-title-x" style={{ fontFamily: "'Open Sans', Inter, Roboto, Arial, sans-serif", fontWeight: 700 }}>DexBox LIVE Lockers</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+            <SearchIcon style={{ color: "var(--muted)" }} />
+            <InputBase
+              placeholder="Search lockers (MADV1, MADV2...) or products (ID, name, serial...)"
+              value={universalSearch}
+              onChange={(e) => setUniversalSearch(e.target.value)}
+              sx={{ 
+                flex: 1,
+                maxWidth: 400,
+                backgroundColor: "rgba(255,255,255,0.05)",
+                borderRadius: 4,
+                padding: "4px 12px",
+                "& input": {
+                  color: "var(--text)",
+                }
+              }}
+              inputProps={{ "aria-label": "universal-search" }}
+            />
+            {universalSearch && (
+              <IconButton size="small" className="search-clear-btn" onClick={() => setUniversalSearch("")}>
+                <CancelIcon sx={{ color: "inherit" }} />
+              </IconButton>
+            )}
+          </div>
         </div>
         <div className="dt-card-row-x">
           {pagedData.length === 0 ? (
@@ -466,13 +519,6 @@ const DynamicTables = ({
                   <div className="card-border-title">Master Locker MADV{mlockerId}</div>
                   <CardContent className="dt-master-card-content-x">
                     <div className="dt-master-title-row-x" style={{ marginBottom: 8 }}>
-                      {/* <Typography variant="h6" gutterBottom className="dt-master-title-x" sx={{ margin: 0 }}>
-                        Master Locker{" "}
-                        <span className="dt-master-id-x" style={{ fontStyle: "italic" }}>
-                          MADV{mlockerId}
-                        </span>
-                      </Typography> */}
-
                       {typeof lockers[0]?.statusinfoM === "string" &&
                       lockers[0].statusinfoM.toLowerCase() === "ready" ? (
                         <InfoIcon
@@ -584,369 +630,9 @@ const DynamicTables = ({
             />
           </div>
         )}
-        {/* Products dialog - dynamic catalogue data */}
-        <Dialog
-          open={productsDialogOpen}
-          onClose={() => setProductsDialogOpen(false)}
-          fullWidth
-          maxWidth="md"
-        >
-          <DialogTitle>
-            Products in {productsLockerLabel}{" "}
-            {productsForLocker.length > 0 && `(${productsForLocker.length})`}
-          </DialogTitle>
-
-          <DialogContent dividers>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
-              >
-              <SearchIcon style={{ color: "var(--muted)" }} />
-              <InputBase
-                placeholder="Search products by QT ID, serial or name"
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                sx={{ flex: 1 }}
-                inputProps={{ "aria-label": "product-search" }}
-              />
-              {productSearch && (
-                <Button size="small" className="search-clear-btn" onClick={() => setProductSearch("")}>×</Button>
-              )}
-            </div>
-
-            {productsForLocker.length === 0 ? (
-              <Typography>No products found for this locker.</Typography>
-            ) : (
-              <List>
-                {displayedProducts.map((p: any, i: number) => {
-                  const pid =
-                    p.qtId != null
-                      ? String(p.qtId)
-                      : p.ProductId || p.id || String(i);
-                  const isExpanded = expandedProductId === pid;
-                  const title = p.Name ?? p.name ?? "Product";
-                  const thumb = p.ImageUrl ?? p.image ?? p.thumbnail ?? null;
-
-                  return (
-                    <div key={pid} style={{ padding: 6 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 12,
-                          alignItems: "center",
-                        }}
-                      >
-                        <Avatar
-                          variant="rounded"
-                          src={thumb || undefined}
-                          style={{ width: 56, height: 56 }}
-                        >
-                          {!thumb && (title[0] ?? "P")}
-                        </Avatar>
-
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontWeight: 700 }}>{title}</div>
-                                <div style={{ color: "var(--muted)", marginTop: 4 }}>
-                                {(p.Category ?? p.category) && (
-                                  <Chip
-                                    size="small"
-                                    label={p.Category ?? p.category}
-                                    style={{ marginRight: 6 }}
-                                  />
-                                )}
-                                {(p.SubCategory ?? p.subCategory) && (
-                                  <Chip
-                                    size="small"
-                                    label={p.SubCategory ?? p.subCategory}
-                                  />
-                                )}
-                              </div>
-                            </div>
-
-                            <div style={{ textAlign: "right" }}>
-                              <div style={{ fontWeight: 600 }}>
-                                qt:{p.qtId ?? "-"}
-                              </div>
-                              <div style={{ color: "var(--muted)", marginTop: 6 }}>
-                                {p.ProductId ? `ID:${p.ProductId}` : ""}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <Button
-                            size="small"
-                            onClick={() =>
-                              setExpandedProductId(isExpanded ? null : pid)
-                            }
-                          >
-                            {isExpanded ? "Hide" : "Details"}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div
-                          style={{
-                            marginTop: 10,
-                            padding: 12,
-                            background: "rgba(0,0,0,0.03)",
-                            borderRadius: 8,
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "1fr 1fr",
-                              gap: 12,
-                            }}
-                          >
-                            <div>
-                              <div style={{ color: "var(--text)", fontWeight: 600 }}>
-                                Serial
-                              </div>
-                              <div style={{ color: "var(--text)" }}>
-                                {p.SerialNumber ?? p.serialNumber ?? "—"}
-                              </div>
-                            </div>
-                            <div>
-                              <div style={{ color: "var(--text)", fontWeight: 600 }}>Category</div>
-                              <div
-                                style={{
-                                  marginTop: 10,
-                                  padding: 12,
-                                  background: "var(--muted-bg)",
-                                  borderRadius: 8,
-                                }}
-                              />
-                              <div style={{ color: "var(--text)" }}>
-                                {p.SubCategory ?? p.subCategory ?? "—"}
-                              </div>
-                            </div>
-                            <div>
-                              <div style={{ color: "var(--text)", fontWeight: 600 }}>
-                                QT ID
-                              </div>
-                              <div style={{ color: "var(--text)" }}>
-                                {p.qtId ?? "—"}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div style={{ marginTop: 12 }}>
-                            {editingId === pid ? (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  gap: 8,
-                                }}
-                              >
-                                <label style={{ fontWeight: 600 }}>
-                                  Last Calibration
-                                </label>
-                                  <input
-                                  type="datetime-local"
-                                  value={editLast}
-                                  onChange={(e) => setEditLast(e.target.value)}
-                                  style={{
-                                    width: "100%",
-                                    padding: 6,
-                                    borderRadius: 4,
-                                    border: "1px solid var(--border)",
-                                    background: "var(--card-bg)",
-                                    color: "var(--text)",
-                                  }}
-                                />
-                                <label style={{ fontWeight: 600 }}>
-                                  Next Calibration
-                                </label>
-                                <input
-                                  type="datetime-local"
-                                  value={editNext}
-                                  onChange={(e) => setEditNext(e.target.value)}
-                                  style={{
-                                    width: "100%",
-                                    padding: 6,
-                                    borderRadius: 4,
-                                    border: "1px solid var(--border)",
-                                    background: "var(--card-bg)",
-                                    color: "var(--text)",
-                                  }}
-                                />
-
-                                <div style={{ display: "flex", gap: 8 }}>
-                                  <Button
-                                    size="small"
-                                    variant="contained"
-                                    disabled={savingEdit}
-                                    onClick={async () => {
-                                      const qt = p.qtId ?? p.ProductId ?? null;
-                                      if (!qt) return;
-                                      setSavingEdit(true);
-                                      const payload = {
-                                        qtId: qt,
-                                        CaliDateLast: toIsoOrNull(editLast),
-                                        CaliDateUpcoming: toIsoOrNull(editNext),
-                                      };
-                                      try {
-                                        const res =
-                                          await updateCatalogueCaliDates(
-                                            payload as any
-                                          );
-                                        if (res && res > 0) {
-                                          setProductsForLocker((prev) =>
-                                            prev.map((it) =>
-                                              (it.qtId != null
-                                                ? String(it.qtId)
-                                                : it.ProductId) === String(qt)
-                                                ? setCaliOnItem(
-                                                    { ...it },
-                                                    payload.CaliDateLast,
-                                                    payload.CaliDateUpcoming
-                                                  )
-                                                : it
-                                            )
-                                          );
-                                          setAllCatalogue((prev) => {
-                                            const next = prev.map((it) =>
-                                              (it.qtId != null
-                                                ? String(it.qtId)
-                                                : it.ProductId) === String(qt)
-                                                ? setCaliOnItem(
-                                                    { ...it },
-                                                    payload.CaliDateLast,
-                                                    payload.CaliDateUpcoming
-                                                  )
-                                                : it
-                                            );
-                                            const grouped: Record<
-                                              string,
-                                              any[]
-                                            > = {};
-                                            (next || []).forEach(
-                                              (item: any) => {
-                                                const raw =
-                                                  item.LockerId ??
-                                                  item.Locker_Id ??
-                                                  item.lockerId ??
-                                                  item.locker_Id ??
-                                                  item.Locker ??
-                                                  null;
-                                                const lid =
-                                                  normalizeLockerKey(raw);
-                                                if (!grouped[lid])
-                                                  grouped[lid] = [];
-                                                grouped[lid].push(item);
-                                              }
-                                            );
-                                            setLockerProductsMap(grouped);
-                                            return next;
-                                          });
-                                        }
-                                      } catch (e) {
-                                        console.error(e);
-                                      } finally {
-                                        setSavingEdit(false);
-                                        setEditingId(null);
-                                      }
-                                    }}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="small"
-                                    onClick={() => setEditingId(null)}
-                                    disabled={savingEdit}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                }}
-                              >
-                                <div>
-                                  <div>
-                                    <strong>Last Calibration:</strong>{" "}
-                                    {(() => {
-                                      const d = parseServerDate(
-                                        getCaliValue(p, "last")
-                                      );
-                                      return d ? d.toLocaleString() : "—";
-                                    })()}
-                                  </div>
-                                  <div style={{ marginTop: 6 }}>
-                                    <strong>Next Calibration:</strong>{" "}
-                                    {(() => {
-                                      const d = parseServerDate(
-                                        getCaliValue(p, "upcoming")
-                                      );
-                                      return d ? d.toLocaleString() : "—";
-                                    })()}
-                                  </div>
-                                </div>
-                                {p.qtId && (
-                                  <Button
-                                    size="small"
-                                    onClick={() => {
-                                      setEditingId(pid);
-                                      setEditLast(
-                                        toInputDate(getCaliValue(p, "last"))
-                                      );
-                                      setEditNext(
-                                        toInputDate(getCaliValue(p, "upcoming"))
-                                      );
-                                    }}
-                                  >
-                                    Edit
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {i < displayedProducts.length - 1 && (
-                        <Divider sx={{ my: 1 }} />
-                      )}
-                    </div>
-                  );
-                })}
-              </List>
-            )}
-          </DialogContent>
-
-          <DialogActions>
-            <Button
-              onClick={() => setProductsDialogOpen(false)}
-              variant="contained"
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
       </div>
     </>
   );
 };
 
-export default DynamicTables;
+export default LockersPage;

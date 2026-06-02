@@ -28,10 +28,10 @@ import SearchIcon from "@mui/icons-material/Search";
 import InfoIcon from "@mui/icons-material/Info";
 import ErrorIcon from "@mui/icons-material/Error";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useLiveLoadData, fetchCatalogue, updateCatalogueCaliDates, fetchNotificationsFromApi, fetchAlertsFromApi } from "./APIService";
+import { useLiveLoadData, fetchCatalogue, updateCatalogueCaliDates, fetchNotificationsFromApi, fetchAlertsFromApi, fetchRequestApprovals } from "./APIService";
 import type { Locker } from "./Locker.tsx";
 
-interface Notification {
+interface LockerNotification {
   locker_Id: number;
   impact: string;
   notifications: string;
@@ -55,6 +55,7 @@ interface MasterPageProps {
   mlockerId?: string | number;
   token?: string;
   onBack?: () => void;
+  showTopBar?: boolean;
 }
 
 const normalizeLockerKey = (v: any) => {
@@ -177,7 +178,7 @@ const toIsoOrNull = (dateStr: string) => {
   }
 };
 
-const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) => {
+const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack, showTopBar }) => {
   const liveData = useLiveLoadData();
   const [catalogue, setCatalogue] = useState<any[]>([]);
   const [groupedByLocker, setGroupedByLocker] = useState<Record<string, any[]>>({});
@@ -190,10 +191,11 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
   const [editLast, setEditLast] = useState<string>("");
   const [editNext, setEditNext] = useState<string>("");
   const [savingEdit, setSavingEdit] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<LockerNotification[]>([]);
   const [notifAnchorEl, setNotifAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [alertAnchorEl, setAlertAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
 
   const slug = propId
     ? String(propId)
@@ -230,7 +232,7 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
   useEffect(() => {
     fetchNotificationsFromApi()
       .then((data) => {
-        setNotifications(data);
+        setNotifications(data as unknown as LockerNotification[]);
       })
       .catch((e) => console.error("Error fetching notifications:", e));
   }, []);
@@ -242,6 +244,24 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
         setAlerts(data);
       })
       .catch((e) => console.error("Error fetching alerts:", e));
+  }, []);
+
+  // Load pending approvals count
+  useEffect(() => {
+    const uid = sessionStorage.getItem("userId") || "";
+    if (!uid) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const arr = await fetchRequestApprovals(uid);
+        if (mounted) setPendingApprovalsCount(Array.isArray(arr) ? arr.length : 0);
+      } catch (err) {
+        if (mounted) setPendingApprovalsCount(0);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const lockers: Locker[] = (liveData || []).filter((l: any) => {
@@ -285,7 +305,8 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
   return (
     <div className="page-shell">
       <div className="content-wrap">
-      <div className="TopBar">
+      {showTopBar !== false && (
+        <div className="TopBar">
         <div className="topbar-left">
           <span className="brand">Client<span className="topbar-janus">Name</span></span>
         </div>
@@ -303,6 +324,17 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
               </Badge>
             </IconButton>
           </Tooltip>
+          <Tooltip title="Approvals">
+            <IconButton
+              size="small"
+              onClick={() => window.location.href = "/"}
+              aria-label="Open approvals"
+            >
+              <Badge badgeContent={pendingApprovalsCount} color="warning">
+                <ApprovalIcon sx={{ fontSize: 24 }} />
+              </Badge>
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Notifications">
             <IconButton
               size="small"
@@ -315,132 +347,134 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
           </Tooltip>
           <Tooltip title="Account"><IconButton size="small"><Avatar sx={{ width: 36, height: 36 }}>U</Avatar></IconButton></Tooltip>
         </div>
-
-        {/* Alerts Popover */}
-        <Popover
-          open={Boolean(alertAnchorEl)}
-          anchorEl={alertAnchorEl}
-          onClose={() => setAlertAnchorEl(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          transformOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <div style={{ width: 420, maxHeight: 500, overflowY: "auto", padding: 16 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, marginBottom: 2 }}>
-              Alerts ({alerts.length})
-            </Typography>
-            {alerts.length === 0 ? (
-              <Typography sx={{ color: "var(--muted)" }}>No alerts</Typography>
-            ) : (
-              <List sx={{ padding: 0 }}>
-                {alerts.map((alert, idx) => (
-                  <Card
-                    key={idx}
-                    sx={{
-                      marginBottom: 1,
-                      padding: 2,
-                      borderRadius: 1,
-                      backgroundColor: alert.Severity === "Critical" || alert.Severity === "High" ? "rgba(255, 82, 82, 0.08)" : "rgba(255, 176, 32, 0.08)",
-                      borderLeft: `4px solid ${alert.Severity === "Critical" || alert.Severity === "High" ? "#ff5252" : "#ffb020"}`,
-                      opacity: alert.IsResolved ? 0.6 : 1,
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, marginBottom: 0.5 }}>
-                          {alert.Name || `Product ID: ${alert.qtId}`}
-                        </Typography>
-                        <Chip
-                          label={alert.Severity}
-                          size="small"
-                          sx={{
-                            backgroundColor: alert.Severity === "Critical" || alert.Severity === "High" ? "#ff5252" : "#ffb020",
-                            color: "#fff",
-                            marginBottom: 1,
-                            marginRight: 1,
-                          }}
-                        />
-                        {alert.IsResolved && (
-                          <Chip
-                            label="Resolved"
-                            size="small"
-                            sx={{
-                              backgroundColor: "#4caf50",
-                              color: "#fff",
-                              marginBottom: 1,
-                              marginRight: 1,
-                            }}
-                          />
-                        )}
-                        <Typography variant="body2" sx={{ color: "var(--text)", marginTop: 0.5 }}>
-                          {alert.AlertDescription}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "var(--muted)", marginTop: 0.5, display: "block" }}>
-                          Serial: {alert.SerialNumber || "N/A"}
-                        </Typography>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </List>
-            )}
-          </div>
-        </Popover>
-
-        {/* Notifications Popover */}
-        <Popover
-          open={Boolean(notifAnchorEl)}
-          anchorEl={notifAnchorEl}
-          onClose={() => setNotifAnchorEl(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          transformOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <div style={{ width: 400, maxHeight: 500, overflowY: "auto", padding: 16 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, marginBottom: 2 }}>
-              Notifications ({notifications.length})
-            </Typography>
-            {notifications.length === 0 ? (
-              <Typography sx={{ color: "var(--muted)" }}>No notifications</Typography>
-            ) : (
-              <List sx={{ padding: 0 }}>
-                {notifications.map((notif, idx) => (
-                  <Card
-                    key={idx}
-                    sx={{
-                      marginBottom: 1,
-                      padding: 2,
-                      borderRadius: 1,
-                      backgroundColor: notif.impact === "Critical" ? "rgba(255, 82, 82, 0.08)" : "rgba(0, 188, 212, 0.08)",
-                      borderLeft: `4px solid ${notif.impact === "Critical" ? "#ff5252" : "#00bcd4"}`,
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, marginBottom: 0.5 }}>
-                          Locker {notif.locker_Id}
-                        </Typography>
-                        <Chip
-                          label={notif.impact}
-                          size="small"
-                          sx={{
-                            backgroundColor: notif.impact === "Critical" ? "#ff5252" : "#ffb020",
-                            color: "#fff",
-                            marginBottom: 1,
-                            marginRight: 1,
-                          }}
-                        />
-                        <Typography variant="body2" sx={{ color: "var(--text)" }}>
-                          {notif.notifications}
-                        </Typography>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </List>
-            )}
-          </div>
-        </Popover>
+        </div>
+      )}
       </div>
-        
+
+      {/* Alerts Popover */}
+      <Popover
+        open={Boolean(alertAnchorEl)}
+        anchorEl={alertAnchorEl}
+        onClose={() => setAlertAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <div style={{ width: 420, maxHeight: 500, overflowY: "auto", padding: 16 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, marginBottom: 2 }}>
+            Alerts ({alerts.length})
+          </Typography>
+          {alerts.length === 0 ? (
+            <Typography sx={{ color: "var(--muted)" }}>No alerts</Typography>
+          ) : (
+            <List sx={{ padding: 0 }}>
+              {alerts.map((alert, idx) => (
+                <Card
+                  key={idx}
+                  sx={{
+                    marginBottom: 1,
+                    padding: 2,
+                    borderRadius: 1,
+                    backgroundColor: alert.Severity === "Critical" || alert.Severity === "High" ? "rgba(255, 82, 82, 0.08)" : "rgba(255, 176, 32, 0.08)",
+                    borderLeft: `4px solid ${alert.Severity === "Critical" || alert.Severity === "High" ? "#ff5252" : "#ffb020"}`,
+                    opacity: alert.IsResolved ? 0.6 : 1,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, marginBottom: 0.5 }}>
+                        {alert.Name || `Product ID: ${alert.qtId}`}
+                      </Typography>
+                      <Chip
+                        label={alert.Severity}
+                        size="small"
+                        sx={{
+                          backgroundColor: alert.Severity === "Critical" || alert.Severity === "High" ? "#ff5252" : "#ffb020",
+                          color: "#fff",
+                          marginBottom: 1,
+                          marginRight: 1,
+                        }}
+                      />
+                      {alert.IsResolved && (
+                        <Chip
+                          label="Resolved"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#4caf50",
+                            color: "#fff",
+                            marginBottom: 1,
+                            marginRight: 1,
+                          }}
+                        />
+                      )}
+                      <Typography variant="body2" sx={{ color: "var(--text)", marginTop: 0.5 }}>
+                        {alert.AlertDescription}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "var(--muted)", marginTop: 0.5, display: "block" }}>
+                        Serial: {alert.SerialNumber || "N/A"}
+                      </Typography>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </List>
+          )}
+        </div>
+      </Popover>
+
+      {/* Notifications Popover */}
+      <Popover
+        open={Boolean(notifAnchorEl)}
+        anchorEl={notifAnchorEl}
+        onClose={() => setNotifAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <div style={{ width: 400, maxHeight: 500, overflowY: "auto", padding: 16 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, marginBottom: 2 }}>
+            Notifications ({notifications.length})
+          </Typography>
+          {notifications.length === 0 ? (
+            <Typography sx={{ color: "var(--muted)" }}>No notifications</Typography>
+          ) : (
+            <List sx={{ padding: 0 }}>
+              {notifications.map((notif, idx) => (
+                <Card
+                  key={idx}
+                  sx={{
+                    marginBottom: 1,
+                    padding: 2,
+                    borderRadius: 1,
+                    backgroundColor: notif.impact === "Critical" ? "rgba(255, 82, 82, 0.08)" : "rgba(0, 188, 212, 0.08)",
+                    borderLeft: `4px solid ${notif.impact === "Critical" ? "#ff5252" : "#00bcd4"}`,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, marginBottom: 0.5 }}>
+                        Locker {notif.locker_Id}
+                      </Typography>
+                      <Chip
+                        label={notif.impact}
+                        size="small"
+                        sx={{
+                          backgroundColor: notif.impact === "Critical" ? "#ff5252" : "#ffb020",
+                          color: "#fff",
+                          marginBottom: 1,
+                          marginRight: 1,
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ color: "var(--text)" }}>
+                        {notif.notifications}
+                      </Typography>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </List>
+          )}
+        </div>
+      </Popover>
+
       <div className="main-column">
         <div style={{ maxWidth: 1200, margin: "18px auto 12px", padding: "0 12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, marginTop: 0 }}>
@@ -466,14 +500,13 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
                         key={String(lid)}
                         sx={{
                           borderRadius: 12,
-                          boxShadow: "0 8px 18px rgba(18,35,50,0.06)",
                           border: "1px solid rgba(30,70,110,0.08)",
                           position: "relative",
                           overflow: "visible",
                         }}
                       >
-                        <CardContent sx={{ padding: "18px 24px", display: "flex", gap: 12, alignItems: "flex-start", border: "2px solid var(--border)", borderRadius: 8 }}>
-                          <div style={{ flex: 1 }}>
+                        <CardContent sx={{ padding: "18px 24px", border: "2px solid var(--border)", borderRadius: 8 }}>
+                          <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%" }}>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                               <div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -481,38 +514,45 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
                                   <CheckCircleIcon sx={{ color: "var(--success)", fontSize: 18 }} />
                                 </div>
 
-                                <div style={{ marginTop: 8, color: "var(--muted)", display: "flex", gap: 28, alignItems: "center", flexWrap: "wrap" }}>
+                                <div style={{ marginTop: 8, display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
                                   <div>
-                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 13 }}>Size</div>
-                                    <div style={{ color: "var(--text)" }}>{String(l.locker_size ?? l.LockerSize ?? l.size ?? "Micro")}</div>
+                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 16 }}>Size</div>
+                                    <div style={{ color: "var(--text)", fontSize: 12, marginTop: 2 }}>{String(l.locker_size ?? l.LockerSize ?? l.size ?? "Micro")}</div>
                                   </div>
 
                                   <div>
-                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 13 }}>Status</div>
-                                    <div style={{ color: "var(--text)" }}>{String(l.status ?? "Filled")}</div>
+                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 16 }}>Status</div>
+                                    <div style={{ color: "var(--text)", fontSize: 12, marginTop: 2 }}>{String(l.status ?? "Filled")}</div>
                                   </div>
 
                                   <div>
-                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 13 }}>Product Count</div>
-                                    <div style={{ color: "var(--text)", fontWeight: 700 }}>{products.length}</div>
+                                    <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 16 }}>Product Count</div>
+                                    <div style={{ color: "var(--text)", fontSize: 12, marginTop: 2 }}>{products.length}</div>
                                   </div>
                                 </div>
                               </div>
 
-                              <div style={{ width: 140, display: "flex", justifyContent: "flex-end" }}>
+                              <div style={{ width: 140, display: "flex", justifyContent: "flex-end", alignSelf: "flex-start" }}>
                                 <Button
                                   className="show-btn"
                                   variant="contained"
                                   onClick={() => openProductsDialog(lid, `ADV00${lid}`)}
                                   sx={{
-                                    background: "linear-gradient(180deg, var(--accent), var(--accent-2))",
-                                    color: "var(--white)",
+                                    background: "linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)",
+                                    color: "#ffffff",
                                     textTransform: "none",
                                     borderRadius: 3,
                                     px: 3,
                                     py: 1.3,
-                                    boxShadow: "0 6px 14px rgba(0,0,0,0.08)",
+                                    border: "2px solid #7c3aed",
+                                    boxShadow: "0 4px 12px rgba(139,92,246,0.35)",
                                     minWidth: 96,
+                                    fontWeight: 600,
+                                    "&:hover": {
+                                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                                      borderColor: "#6d28d9",
+                                      boxShadow: "0 6px 16px rgba(139,92,246,0.5)",
+                                    },
                                   }}
                                 >
                                   Show
@@ -522,10 +562,37 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
 
                             <Divider sx={{ my: 1.5 }} />
 
-                            <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-                              <Chip label={`Locker Id: ${lid}`} size="small" sx={{ borderRadius: 2 }} />
-                              <Chip label={`Location: ${l.Location ?? l.site ?? "Unknown"}`} size="small" sx={{ borderRadius: 2 }} />
-                              <Chip label={`Condition: ${cond || "not ready"}`} size="small" sx={{ borderRadius: 2, backgroundColor: cond === 'ready' ? '#4caf50' : '#ff5252', color: '#ffffff' }} />
+                            <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 8, flexWrap: "wrap" }}>
+                              <Chip
+                                size="small"
+                                sx={{ borderRadius: 2, height: "auto", py: 0.4 }}
+                                label={
+                                  <span>
+                                    <span style={{ fontSize: 13, fontWeight: 700 }}>Locker Id: </span>
+                                    <span style={{ fontSize: 11 }}>{lid}</span>
+                                  </span>
+                                }
+                              />
+                              <Chip
+                                size="small"
+                                sx={{ borderRadius: 2, height: "auto", py: 0.4 }}
+                                label={
+                                  <span>
+                                    <span style={{ fontSize: 13, fontWeight: 700 }}>Location: </span>
+                                    <span style={{ fontSize: 11 }}>{l.Location ?? l.site ?? "Unknown"}</span>
+                                  </span>
+                                }
+                              />
+                              <Chip
+                                size="small"
+                                sx={{ borderRadius: 2, height: "auto", py: 0.4, backgroundColor: cond === 'ready' ? '#4caf50' : '#ff5252', color: '#ffffff' }}
+                                label={
+                                  <span>
+                                    <span style={{ fontSize: 13, fontWeight: 700 }}>Condition: </span>
+                                    <span style={{ fontSize: 11 }}>{cond || "not ready"}</span>
+                                  </span>
+                                }
+                              />
                             </div>
                           </div>
                         </CardContent>
@@ -553,7 +620,7 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
                 sx={{ flex: 1 }}
                 inputProps={{ "aria-label": "product-search" }}
               />
-              {productSearch && <Button size="small" onClick={() => setProductSearch("")}>Clear</Button>}
+              {productSearch && <Button size="small" className="search-clear-btn" onClick={() => setProductSearch("")}>×</Button>}
             </div>
 
             {productsForLocker.length === 0 ? (
@@ -620,9 +687,9 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
                             {editingId === pid ? (
                               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                 <label style={{ fontWeight: 600 }}>Last Calibration</label>
-                                <input type="datetime-local" value={editLast} onChange={(e) => setEditLast(e.target.value)} style={{ padding: 6, borderRadius: 4, border: "1px solid var(--border)" }} />
+                                <input type="datetime-local" value={editLast} onChange={(e) => setEditLast(e.target.value)} style={{ width: "100%", padding: 6, borderRadius: 4, border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text)" }} />
                                 <label style={{ fontWeight: 600 }}>Next Calibration</label>
-                                <input type="datetime-local" value={editNext} onChange={(e) => setEditNext(e.target.value)} style={{ padding: 6, borderRadius: 4, border: "1px solid var(--border)" }} />
+                                <input type="datetime-local" value={editNext} onChange={(e) => setEditNext(e.target.value)} style={{ width: "100%", padding: 6, borderRadius: 4, border: "1px solid var(--border)", background: "var(--card-bg)", color: "var(--text)" }} />
 
                                 <div style={{ display: "flex", gap: 8 }}>
                                   <Button size="small" variant="contained" disabled={savingEdit} onClick={async () => {
@@ -690,7 +757,6 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack }) =>
             <Button onClick={() => setProductsDialogOpen(false)} variant="contained">Close</Button>
           </DialogActions>
         </Dialog>
-      </div>
       </div>
     </div>
   );

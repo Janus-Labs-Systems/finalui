@@ -242,17 +242,16 @@ export default function AddUser({ onDone }: AddUserProps) {
 
   return (
     <div className="page-shell" style={{ minHeight: "calc(100vh - 72px)" }}>
-      <div className="content-wrap panel" style={{ background: "var(--card-bg)", padding: 24, borderRadius: 12, boxShadow: "var(--card-shadow)", minWidth: 720, maxWidth: "920px", width: "min(92vw, 920px)" }}>
-        <div style={{ display: "flex", gap: 16 }}>
+      <div className="content-wrap panel" style={{ background: "var(--card-bg)", padding: "clamp(12px, 3vw, 24px)", borderRadius: 12, boxShadow: "var(--card-shadow)", minWidth: 0, maxWidth: "920px", width: "min(96vw, 920px)" }}>
+        <div className="add-user-two-col" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           {/* Left: form card */}
-          <Card sx={{ flex: 1 }}>
+          <Card sx={{ flex: 1, minWidth: 0 }}>
             <CardContent>
               <h1
                 style={{
                   marginBottom: 8,
                   fontFamily: "'Open Sans', Inter, Roboto, Arial, sans-serif",
-                  fontWeight: 700,
-                  fontStyle: "italic",
+                  fontWeight: 700 
                 }}
               >
                 Add User
@@ -347,7 +346,7 @@ export default function AddUser({ onDone }: AddUserProps) {
           </Card>
 
           {/* Right: users list card */}
-          <Card sx={{ width: 340 }}>
+          <Card className="add-user-list-card" sx={{ width: 340, minWidth: 0 }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Users under your management

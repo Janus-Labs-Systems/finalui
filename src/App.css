@@ -3,7 +3,7 @@
 /* Theme tokens — DexBox ADV Dark Purple Theme */
 :root {
   /* DexBox ADV dark professional theme */
-  --bg: #0f1419; /* deep navy background */
+  --bg: #f7fafd; /* deep navy background */
   --text: #e8ecf1; /* light text for dark bg */
   --muted: #8892a0; /* neutral muted text */
   --card-bg: #1a1f2e; /* dark card background */
@@ -12,7 +12,7 @@
   --table-fore: #7c3aed; /* table foreground purple */
   --border: rgba(167, 139, 250, 0.15);
   --card-shadow: 0 10px 40px rgba(0,0,0,0.4);
-  --topbar-bg: #0f1724; /* slightly deeper indigo for topbar */
+  --topbar-bg: #3b424a; /* dark blue topbar */
   --topbar-text: #f7f9fb; /* high-contrast topbar text */
   /* Footer colors */
   --footer-bg: #131820;
@@ -21,7 +21,7 @@
   --topbar-live: #a78bfa;
   --topbar-janus: #8b5cf6;
   --topbar-dexbox: #ffffff;
-  --topbar-plus: #c4b5fd;
+  --topbar-plus: #f90606;
 }
 
 /* Semantic tokens */
@@ -43,7 +43,7 @@
   --accent-2: #8b5cf6;
   --border: rgba(167, 139, 250, 0.15);
   --card-shadow: 0 10px 40px rgba(0,0,0,0.4);
-  --topbar-bg: #1a1f2e;
+  --topbar-bg: #4d545f;
 }
 
 .theme-creative {
@@ -56,7 +56,7 @@
   --accent-2: #8b5cf6;
   --border: rgba(167, 139, 250, 0.15);
   --card-shadow: 0 10px 40px rgba(0,0,0,0.4);
-  --topbar-bg: #1a1f2e;
+  --topbar-bg: #0a1628;
 }
 
 /* DexBox ADV theme: minimal, high-contrast, refined purple accent */
@@ -69,12 +69,17 @@
   --accent-2: #8b5cf6;
   --border: rgba(167, 139, 250, 0.15);
   --card-shadow: 0 10px 40px rgba(0,0,0,0.4);
-  --topbar-bg: #1a1f2e;
+  --topbar-bg: #0a1628;
   --footer-bg: #131820;
   --footer-text: #8892a0;
   --topbar-dexbox: #ffffff;
   --topbar-janus: #a78bfa;
-  --topbar-plus: #c4b5fd;
+  --topbar-plus: #ff0000;
+}
+
+/* Global font — Open Sans for all content */
+html, body, #root, * {
+  font-family: 'Open Sans', Inter, Roboto, Arial, sans-serif !important;
 }
 
 /* Global theme-aware defaults - DexBox ADV dark theme */
@@ -99,6 +104,9 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
   background-color: var(--topbar-bg) !important;
   color: var(--topbar-text) !important;
   border-bottom: 1px solid var(--border);
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1200 !important;
 }
 
 /* TopBar specific layout used by MasterPage.tsx */
@@ -111,10 +119,10 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
   height: 64px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(90deg, var(--topbar-bg), rgba(15,20,30,0.85));
+  background: linear-gradient(90deg, var(--topbar-bg), rgba(71, 78, 94, 0.85));
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1200;
 }
 .TopBar .topbar-left, .TopBar .topbar-center, .TopBar .topbar-right { display: flex; align-items: center; gap: 12px; }
 .TopBar .topbar-center { flex: 1; justify-content: center; }
@@ -133,17 +141,31 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
 .master-lockers-grid .MuiCard-root {
   border: 1px solid var(--border) !important;
   box-shadow: var(--card-shadow) !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-self: stretch !important;
+}
+.master-lockers-grid .MuiCard-root .MuiCardContent-root {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;       /* inner div must fill full card width */
+  padding-bottom: 18px !important;       /* override MUI's :last-child 24px rule */
+}
+/* ensure the direct content div inside CardContent also fills full width */
+.master-lockers-grid .MuiCard-root .MuiCardContent-root > div {
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* UI schema: content wrapper, large panels and small cards to match provided screenshot */
 .page-shell {
-  /* Background is applied globally in html/body/root with fixed attachment */
-  /* Do not duplicate background here to avoid conflicts when content is short */
-  background: transparent;
+  background: var(--bg);
   min-height: 100vh;
   padding: 28px 0;
   position: relative;
-  overflow: hidden;
 }
 
 .page-shell > * {
@@ -216,10 +238,10 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #ffffff, var(--accent));
+  /* background: linear-gradient(135deg, #ffffff, var(--accent));
   background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: transparent; */
 }
 
 .TopBar .topbar-plus {
@@ -245,11 +267,11 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
 
 /* Buttons and primary actions - flat accent button style */
 button, .btn, .primary-btn {
-  background: var(--accent) !important;
+  background: #b4d7ff !important;
   color: #fff;
   border-radius: 10px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Home page button and card effects */
@@ -442,16 +464,13 @@ button, .btn, .primary-btn {
 }
 
 .dt-master-card-x .see-more-btn {
-  transition: all 0.3s ease-out;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-  border: none !important;
+  background: #b4d7ff !important;
+  color: #ffffff !important;
 }
 
 .dt-master-card-x .see-more-btn:hover {
-  box-shadow: 0 10px 25px rgba(0, 188, 212, 0.2) !important;
-  opacity: 0.9;
+  background: #b4d7ff !important;
+  opacity: 1;
 }
 
 /* Smooth metric value animations */
@@ -494,6 +513,8 @@ button, .btn, .primary-btn {
 html {
   scrollbar-gutter: stable;
   overflow-y: scroll; /* fall-back to always show scrollbar area */
+  scrollbar-color: rgba(16, 16, 16, 0.5) transparent; /* Firefox + modern Chromium */
+  scrollbar-width: thin;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -503,16 +524,16 @@ html {
     --text: #e6eef6;
     --muted: #9aa6b2;
     --card-bg: #23272a;
-    --accent: #00e0ff;
-    --accent-2: #0ea5a4;
+    --accent: #111112;
+    --accent-2: #111111;
     --border: rgba(255,255,255,0.06);
     --card-shadow: 0 2px 16px rgba(0,0,0,0.6);
-    --topbar-bg: #0b0f14;
+    --topbar-bg: #57616c;
     /* In dark mode, pick high-contrast brand tones */
     --topbar-live: #7fffd4;
     --topbar-janus: #8fb3ff;
     --topbar-dexbox: #e6eef6;
-    --topbar-plus: #3ad1b8;
+    --topbar-plus: #ff0000;
   }
 
   #root > div[style],
@@ -541,19 +562,18 @@ html {
 .login-card {
   position: relative;
   border-radius: 16px;
-  padding: 48px 48px 40px 48px; /* roomy but tightened a bit */
+  padding: 48px 48px 40px 48px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* Frosted glass look with dark gradient for DexBox ADV */
-  background: linear-gradient(180deg, rgba(26,31,46,0.95), rgba(15,20,25,0.98));
-  border: 1px solid rgba(167,139,250,0.2);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   overflow: hidden;
   min-width: 460px;
   max-width: 100%;
-  backdrop-filter: blur(8px) saturate(1.1);
-  z-index: 3; /* keep card above animated background blobs */
+  z-index: 3;
 }
 .login-brand {
   text-align: left;
@@ -576,6 +596,20 @@ html {
   flex-direction: column;
   gap: 12px;
   margin-top: 6px;
+}
+.login-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.login-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  letter-spacing: 0.03em;
+}
+.login-required {
+  color: #ff5252;
 }
 .login-field .MuiInputBase-root,
 .login-field .MuiOutlinedInput-root {
@@ -696,106 +730,29 @@ html {
 }
 .login-side-card-wrapper { z-index: 2; }
 .login-side-card {
-  /* restored to original requested width but with refined visuals */
-  width: 380px;
-  min-height: 320px;
+  width: 480px;
+  min-height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(139,92,246,0.05));
-  border: 1px solid rgba(167,139,250,0.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-  padding: 18px;
+  background: #000000 !important;
+  border: 1px solid rgba(0,230,118,0.25);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 24px rgba(0,230,118,0.08);
+  padding: 16px;
+  overflow: hidden;
 }
-.side-card-content { text-align: center; display:flex; flex-direction:column; gap:10px; align-items:center; }
-.side-card-content svg { width: 95%; height: auto; display:block; filter: invert(1) brightness(0.8); }
-.side-card-sub { color: #a78bfa; font-weight:700; opacity:0.9; font-size:0.95rem; }
 
 @media (max-width: 920px) {
   .login-inner { flex-direction: column-reverse; gap: 18px; padding-top: 8px; }
-  .login-side-card { width: 88%; min-height: 140px; }
+  .login-side-card { width: 92%; min-height: auto; }
 }
 
-/* Animated purple blobs behind the login card. Soft, slow movement for subtle life. */
 .login-page::before,
-.login-page::after {
-  content: "";
-  position: absolute;
-  z-index: 1; /* behind the login-card (which is z-index:3) */
-  pointer-events: none;
-  filter: blur(60px);
-  opacity: 0.55;
-}
-.login-page::before {
-  /* large purple blob - moves slowly left-right and up-down */
-  width: 520px;
-  height: 520px;
-  left: -10%;
-  top: -8%;
-  background: radial-gradient(circle at 35% 30%, rgba(167,139,250,0.95), rgba(167,139,250,0.55) 30%, rgba(139,92,246,0.12) 55%, transparent 70%);
-  animation: blobFloat1 30s cubic-bezier(.22,.9,.36,1) infinite;
-  opacity: 0.12;
-}
-.login-page::after {
-  /* secondary purple/indigo blob - offset and smaller */
-  width: 380px;
-  height: 380px;
-  right: -6%;
-  bottom: -6%;
-  background: radial-gradient(circle at 30% 40%, rgba(139,92,246,0.95), rgba(99,102,241,0.55) 28%, rgba(167,139,250,0.08) 60%, transparent 75%);
-  animation: blobFloat2 36s cubic-bezier(.22,.9,.36,1) infinite;
-  opacity: 0.14;
-}
+.login-page::after { display: none; }
 
-@keyframes blobFloat1 {
-  0% { transform: translate3d(0,0,0) scale(1); }
-  25% { transform: translate3d(8px, -12px, 0) scale(1.04); }
-  50% { transform: translate3d(0, 6px, 0) scale(1); }
-  75% { transform: translate3d(-10px, -6px, 0) scale(0.98); }
-  100% { transform: translate3d(0,0,0) scale(1); }
-}
-
-@keyframes blobFloat2 {
-  0% { transform: translate3d(0,0,0) scale(1); }
-  30% { transform: translate3d(-6px, 10px, 0) scale(1.02); }
-  60% { transform: translate3d(6px, -4px, 0) scale(0.98); }
-  100% { transform: translate3d(0,0,0) scale(1); }
-}
-
-/* reduce intensity for dark mode so blobs are subtle */
-@media (prefers-color-scheme: dark) {
-  .login-page::before,
-  .login-page::after { opacity: 0.06; filter: blur(56px) saturate(0.9); }
-}
-
-/* Decorative left accent on the login card */
-.login-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: linear-gradient(180deg, #00e0ff, #0ea5a4);
-  border-top-left-radius: 16px;
-  border-bottom-left-radius: 16px;
-  box-shadow: 0 6px 18px rgba(14,165,164,0.08);
-}
-
-/* Gentle decorative shine in the top-right corner */
-.login-card::after {
-  content: "";
-  position: absolute;
-  right: -40px;
-  top: -40px;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(255,255,255,0) 40%);
-  transform: rotate(12deg);
-  pointer-events: none;
-  opacity: 0.6;
-}
+.login-card::before,
+.login-card::after { display: none; }
 
 @media (max-width: 520px) {
   .login-card { padding: 20px; }
@@ -814,7 +771,7 @@ html {
   .card-color,
   form {
     background-color: #23272a !important;
-    color: #095bf5 !important;
+    color: #5a5b5c !important;
     border: 1px solid #444 !important;
     box-shadow: 0 2px 16px #222 !important;
   }
@@ -831,7 +788,7 @@ html {
   .MuiCard-root,
   .MuiCardMedia-root {
     background: #23272a !important;
-    color: #176ad0 !important;
+    color: #292828 !important;
     border: 1px solid #444 !important;
   }
   input[type="text"],
@@ -891,7 +848,7 @@ html {
     background-color: #23272a !important;
     color: #e0e0e0 !important;
     border: 1px solid #444 !important;
-    box-shadow: 0 2px 16px #222 !important;
+    /* box-shadow: 0 2px 16px #222 !important; */
   }
 }
 /* Force dark mode for main cards and containers */
@@ -951,43 +908,35 @@ html {
   box-shadow: 0 26px 60px rgba(2,6,23,0.12) !important;
 }
 
-/* Buttons: stronger affordance and subtle depth */
+/* Buttons: simple flat style */
 .MuiButton-root {
-  border-radius: 10px !important;
-  padding: 10px 14px !important;
+  border-radius: 6px !important;
+  background: #252526 !important;
+  color: #ffffff !important;
+}
+.MuiButton-root:hover {
+  background: #252526 !important;
 }
 
-/* Styling specifically for 'Show' buttons to make them easily identifiable */
+/* Styling specifically for 'Show' buttons */
 .show-btn {
-  border: 2px solid rgba(255,255,255,0.06) !important;
-  padding: 10px 18px !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
   min-width: 96px !important;
   text-transform: none !important;
-  box-shadow: none !important;
-  transition: none !important;
 }
 .show-btn:hover,
 .show-btn:focus,
 .show-btn:active {
-  box-shadow: none !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
   transform: none !important;
-  border-color: rgba(167,139,250,0.18) !important;
 }
 .MuiButton-contained,
 .MuiButton-containedPrimary,
 .MuiButton-containedSecondary {
-  --button-bg: var(--accent);
-  background: var(--button-bg) !important;
-  color: #fff !important;
-  font-weight: 600 !important;
-}
-.MuiButton-containedPrimary {
-  --button-bg: var(--accent);
-  /* use theme gradient for stronger visual fit */
-  background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
-  border-color: transparent !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
 }
 .MuiButton-contained:hover,
 .MuiButton-containedPrimary:hover,
@@ -998,18 +947,8 @@ html {
 .MuiButton-contained:active,
 .MuiButton-containedPrimary:active,
 .MuiButton-containedSecondary:active {
-  background: var(--button-bg) !important;
-
-}
-
-/* Preserve gradient for primary contained buttons on hover/focus/active */
-.MuiButton-containedPrimary:hover,
-.MuiButton-containedPrimary:focus,
-.MuiButton-containedPrimary:active {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important;
-  color: #ffffff !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.08) !important;
-  transform: none !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
 }
 
 /* Keep popup/dialog/menu buttons visually static on hover/focus/active */
@@ -1039,9 +978,9 @@ button:active,
 .MuiButton-contained:hover,
 .MuiButton-contained:focus,
 .MuiButton-contained:active {
-  background: var(--button-bg) !important;
-  color: inherit !important;
-  border-color: var(--button-bg) !important;
+  background: #b4d7ff !important;
+  color: #ffffff !important;
+  border-color: #8ec5f8 !important;
 }
 
 /* Outlined / text buttons should not change color on hover */
@@ -1113,10 +1052,12 @@ button:active,
   margin-bottom: 6px;
 }
 
-/* Topbar controls: slightly larger hit targets */
+/* Topbar icon buttons — flat, no padding, no shadow */
 .TopBar .MuiIconButton-root {
-  padding: 8px;
-  border-radius: 8px;
+  padding: 4px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* Cards content: improved padding and subtle dividers */
@@ -1137,9 +1078,42 @@ button:active,
 }
 
 /* Polished scrollbars for desktop (non-invasive) */
-::-webkit-scrollbar { height: 10px; width: 10px; }
-::-webkit-scrollbar-thumb { background: rgba(11,61,145,0.12); border-radius: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar { height: 8px; width: 8px; }
+::-webkit-scrollbar-thumb { background: #909090; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #6e6e6e; }
+::-webkit-scrollbar-track { background: #d4d4d4; border-radius: 8px; }
+::-webkit-scrollbar-corner { background: #d4d4d4; }
+
+/* Main content column scrollbar — explicit override */
+html, body, #root, .main-column {
+  scrollbar-color: #909090 #d4d4d4;
+  scrollbar-width: thin;
+}
+.main-column::-webkit-scrollbar { width: 8px; }
+.main-column::-webkit-scrollbar-thumb { background: #909090; border-radius: 8px; }
+.main-column::-webkit-scrollbar-thumb:hover { background: #6e6e6e; }
+.main-column::-webkit-scrollbar-track { background: #d4d4d4; border-radius: 8px; }
+
+/* Add Item / Add User page scrollbars — explicit grey override */
+.page-shell::-webkit-scrollbar,
+.content-wrap::-webkit-scrollbar,
+.add-item-form::-webkit-scrollbar,
+.panel::-webkit-scrollbar { width: 8px; height: 8px; }
+
+.page-shell::-webkit-scrollbar-thumb,
+.content-wrap::-webkit-scrollbar-thumb,
+.add-item-form::-webkit-scrollbar-thumb,
+.panel::-webkit-scrollbar-thumb { background: #909090; border-radius: 8px; }
+
+.page-shell::-webkit-scrollbar-thumb:hover,
+.content-wrap::-webkit-scrollbar-thumb:hover,
+.add-item-form::-webkit-scrollbar-thumb:hover,
+.panel::-webkit-scrollbar-thumb:hover { background: #6e6e6e; }
+
+.page-shell::-webkit-scrollbar-track,
+.content-wrap::-webkit-scrollbar-track,
+.add-item-form::-webkit-scrollbar-track,
+.panel::-webkit-scrollbar-track { background: #d4d4d4; border-radius: 8px; }
 
 /* Subtle helper for empty states */
 .empty-state { color: var(--muted); font-style: italic; }
@@ -1183,18 +1157,18 @@ button:active,
   transition: none !important;
 }
 
-/* Stronger specificity so .show-btn visual affordance wins over global static rules */
+/* show-btn — simple flat style, no hover change */
 .MuiButton-root.show-btn,
 button.show-btn {
-  border: 2px solid rgba(255,255,255,0.06) !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
 }
 .MuiButton-root.show-btn:hover,
 button.show-btn:hover,
 .MuiButton-root.show-btn:focus,
 button.show-btn:focus {
-  box-shadow: 0 10px 28px rgba(139,92,246,0.14) !important;
-  transform: translateY(-2px) !important;
-  border-color: rgba(167,139,250,0.28) !important;
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
 }
 
 
@@ -1314,7 +1288,7 @@ body {
 }
 
 .TopBar {
-  background: linear-gradient(90deg, #6585b4 0%, #6585b4 35%, #6585b4 75%) !important;
+  background: linear-gradient(90deg, #6e7785 0%, #747a83 35%, #72767c 75%) !important;
   color: #ffffff !important;
   border-bottom: 1px solid rgba(255,255,255,0.06) !important;
   box-shadow: 0 6px 18px rgba(3,35,70,0.12) !important;
@@ -1341,17 +1315,26 @@ body {
   fill: currentColor !important;
 }
 
-/* Subtle hover/active states that keep contrast */
+/* Suppress MUI ripple overlay in topbar */
+.TopBar .MuiTouchRipple-root { display: none !important; }
+
+/* Topbar icon/button states — no shadow, no background shift */
 .TopBar .MuiIconButton-root:hover,
-.TopBar .MuiButton-root:hover {
+.TopBar .MuiIconButton-root:focus,
+.TopBar .MuiIconButton-root:active,
+.TopBar .MuiIconButton-root:focus-visible,
+.TopBar .MuiButton-root:hover,
+.TopBar .MuiButton-root:focus,
+.TopBar .MuiButton-root:active {
   background: transparent !important;
   box-shadow: none !important;
+  outline: none !important;
 }
 
 /* Dark-mode variant (keeps contrast but deeper tones) */
 @media (prefers-color-scheme: dark) {
   .TopBar {
-    background: linear-gradient(90deg, #061A37 0%, #083055 45%, #0b3d5a 100%) !important;
+    background: linear-gradient(90deg, #161616 0%, #383a3b 45%, #1e1e1e 100%) !important;
     box-shadow: 0 6px 18px rgba(0,0,0,0.6) !important;
     color: #fff !important;
     border-bottom: 1px solid rgba(255,255,255,0.04) !important;
@@ -1368,8 +1351,7 @@ body {
 }
 
 .TopBar .topbar-title,
-.TopBar .topbar-janus,
-.TopBar .topbar-plus {
+.TopBar .topbar-janus {
   color: #ffffff !important;
 }
 
@@ -1377,7 +1359,7 @@ body {
 .TopBar .topbar-left { color: var(--topbar-live) !important;font-size: 1.25rem !important; }
 .TopBar .topbar-left .topbar-janus { color: var(--topbar-janus) !important; }
 .TopBar .topbar-center .topbar-title { color: var(--topbar-dexbox) !important; }
-.TopBar .topbar-center .topbar-plus { color: var(--topbar-plus) !important; }
+.TopBar .topbar-center .topbar-plus { color: #ff3b3b !important; }
 
 /* When brand is wrapped in a single element, ensure there's no extra gap */
 .TopBar .topbar-left .brand { display: inline-flex; gap: 0; align-items: center; }
@@ -1397,9 +1379,8 @@ body {
 .TopBar .topbar-center .topbar-title .topbar-plus {
   font-size: 2rem;
   font-weight: 900;
-  /* '+' should be red as requested */
-  color: #ffffff !important;
-  margin-left: 0; /* ensure no extra left margin */
+  color: #ff3b3b !important;
+  margin-left: 0;
 }
 
 @media (min-width: 900px) {
@@ -1463,7 +1444,7 @@ body {
 .MuiTableHead-root,
 .MuiTableRow-root {
   color: var(--text) !important;
-  background: transparent !important;
+  /* background: transparent !important; */
 }
 
 /* MenuItem text (alerts/notifications) */
@@ -1543,7 +1524,7 @@ body {
 .notifications-title { color: var(--text); }
 
 /* footer should follow theme */
-footer { background: transparent !important; color: var(--muted) !important; }
+footer { background: var(--footer-bg, #131820) !important; color: var(--footer-text, #8892a0) !important; }
 
 /* App header removed - cleaned up styles */
 
@@ -1700,6 +1681,11 @@ footer { background: transparent !important; color: var(--muted) !important; }
   z-index: 1;
 }
 
+.dt-root-x::-webkit-scrollbar { width: 8px; }
+.dt-root-x::-webkit-scrollbar-track { background: transparent; }
+.dt-root-x::-webkit-scrollbar-thumb { background: rgba(14, 14, 14, 0.4); border-radius: 4px; }
+.dt-root-x::-webkit-scrollbar-thumb:hover { background: rgba(12, 12, 12, 0.7); }
+
 /* Make master cards stack vertically and use full width (reference-style) */
 .dt-card-row-x {
   display: block; /* remove grid behavior */
@@ -1812,7 +1798,7 @@ footer { background: transparent !important; color: var(--muted) !important; }
 .dt-master-metrics-row .metric .metric-value {
   font-size: 1.05rem;
   color: #111827;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* Location metric grows */
@@ -1820,17 +1806,16 @@ footer { background: transparent !important; color: var(--muted) !important; }
   flex: 1 1 320px;
 }
 
-/* See more button style similar to reference */
+/* See more button style */
 .dt-master-metrics-row .MuiButton-containedPrimary {
-  --button-bg: #00c7f0;
-  background: var(--button-bg) !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-  color: #04293e;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 10px 18px;
+  background: #b4d7ff !important;
+  color: #ffffff !important;
+  border-radius: 6px;
   width: 120px;
   min-width: 113px;
+}
+.dt-master-metrics-row .MuiButton-containedPrimary:hover {
+  background: #b4d7ff !important;
 }
 
 /* Make layout responsive: stack metrics vertically on narrow screens */
@@ -1846,10 +1831,12 @@ footer { background: transparent !important; color: var(--muted) !important; }
 
 /* Master lockers responsive grid: 2 columns on desktop, 1 on narrow screens */
 .master-lockers-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 18px;
-  align-items: start;
+  align-items: stretch !important;
+  align-content: start !important;
+  grid-auto-rows: auto;           /* each row height = tallest card in that row */
   width: 100%;
   box-sizing: border-box;
   margin: 0;
@@ -1885,7 +1872,7 @@ footer { background: transparent !important; color: var(--muted) !important; }
 .main-column {
   width: 100%;
   max-width: 100%;
-  padding-top: calc(var(--topbar-height, 64px) + 8px) !important; /* keep content directly below TopBar */
+  padding-top: 8px !important;
 }
 
 /* make the search/logo and side panels flow in normal layout (not absolute) */
@@ -1927,17 +1914,16 @@ footer { background: transparent !important; color: var(--muted) !important; }
 
 /* Approve button - primary filled style */
 .dt-searchbar-x .MuiButton-contained {
-  /* Make primary action match Add Item / Add User (outlined/transparent) */
-  border-color: var(--border) !important;
-  background: transparent !important;
-  color: var(--text) !important;
-  font-weight: 600 !important;
+  background: #b4d7ff !important;
+  border-color: #8ec5f8 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
   box-shadow: none !important;
 }
 
 .dt-searchbar-x .MuiButton-contained:hover {
-  background: var(--button-bg) !important;
-  color: #fff !important;
+  background: #8ec5f8 !important;
+  color: #ffffff !important;
   box-shadow: none !important;
   transform: none !important;
 }
@@ -2036,7 +2022,7 @@ footer { background: transparent !important; color: var(--muted) !important; }
 }
 .MuiButton-contained:hover,
 .MuiButton-containedPrimary:hover {
-  background: var(--button-bg) !important;
+  background: #8ec5f8 !important;
 }
 
 /* Remove subtle focus/hover highlight on icon buttons in TopBar */
@@ -2122,8 +2108,8 @@ footer { background: transparent !important; color: var(--muted) !important; }
 /* Ensure any lingering decorative cards do not overlay the header area */
 .sm-card { min-height: 0 !important; }
 
-/* Make sure main column stays directly under TopBar */
-.main-column { padding-top: calc(var(--topbar-height,64px) + 8px) !important; }
+/* Main column already below TopBar via container margin-top: 64px */
+.main-column { padding-top: 8px !important; }
 
 /* Stacking rules to avoid overlaps between TopBar and overlays (Drawer/Popper) */
 .TopBar {
@@ -2332,8 +2318,9 @@ left: -119px !important;
 
 /* Master card grid: 2 columns desktop, 1 column mobile (already present but ensure) */
 .master-lockers-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 18px;
+  align-items: stretch !important;
 }
 @media (max-width: 980px) {
   .master-lockers-grid {
@@ -2560,3 +2547,767 @@ left: -119px !important;
   box-sizing: border-box;
   margin: 8px auto;
 }
+
+/* ===== LIGHT MODE OVERRIDES ===== */
+body.light-mode {
+  --bg: #f4f6f8;
+  --text: #111827;
+  --muted: #6b7280;
+  --card-bg: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --footer-bg: #e8edf2;
+  --footer-text: #374151;
+  --topbar-bg: #1565c0;
+  --topbar-text: #ffffff;
+}
+
+body.light-mode,
+body.light-mode #root {
+  background-color: #f4f6f8 !important;
+  background-image: none !important;
+  color: #111827 !important;
+}
+
+/* Cards & panels */
+body.light-mode .MuiCard-root,
+body.light-mode .card,
+body.light-mode .sm-card,
+body.light-mode .panel {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Overview cards on dashboard */
+body.light-mode .overview-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07) !important;
+}
+body.light-mode .overview-label,
+body.light-mode .overview-sub { color: #6b7280 !important; }
+body.light-mode .overview-value { color: #111827 !important; }
+
+/* Sidebar */
+body.light-mode .MuiDrawer-paper {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Page content text */
+body.light-mode .main-column,
+body.light-mode .main-column * {
+  color: #111827 !important;
+}
+
+/* MUI Table */
+body.light-mode .MuiTableHead-root .MuiTableCell-root {
+  background-color: #f0f2f5 !important;
+  color: #7c3aed !important;
+}
+body.light-mode .MuiTableCell-root {
+  border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(124, 58, 237, 0.05) !important;
+}
+body.light-mode .MuiTableRow-root.Mui-selected {
+  background-color: rgba(124, 58, 237, 0.08) !important;
+}
+
+/* MUI Inputs */
+body.light-mode .MuiOutlinedInput-root,
+body.light-mode .MuiInputBase-root {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiInputBase-input { color: #111827 !important; }
+body.light-mode .MuiInputBase-input::placeholder { color: #9ca3af !important; }
+body.light-mode .MuiInputLabel-root { color: #6b7280 !important; }
+body.light-mode .MuiOutlinedInput-notchedOutline { border-color: rgba(0,0,0,0.2) !important; }
+
+/* MUI Popover / Menu (dropdown stays dark-ish for contrast) */
+body.light-mode .MuiMenu-paper,
+body.light-mode .MuiPopover-paper {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiMenuItem-root { color: #111827 !important; }
+body.light-mode .MuiMenuItem-root:hover { background-color: rgba(124, 58, 237, 0.07) !important; }
+
+/* MUI Dialog */
+body.light-mode .MuiDialog-paper,
+body.light-mode .MuiDialogContent-root {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Locker / master page cards */
+body.light-mode .dt-master-card-x,
+body.light-mode .dt-locker-card-x,
+body.light-mode .locker-card {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+body.light-mode .dt-master-card-x *,
+body.light-mode .dt-locker-card-x *,
+body.light-mode .locker-card * { color: #111827 !important; }
+
+/* Page shell, layout containers & master wrapper */
+body.light-mode .page-shell { background: #f4f6f8 !important; }
+body.light-mode .main-column { background: #f4f6f8 !important; }
+body.light-mode .master-page-wrapper {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+}
+
+/* MasterPage locker cards */
+body.light-mode .master-lockers-grid .MuiCard-root,
+body.light-mode .master-lockers-grid .MuiCardContent-root {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .master-lockers-grid .MuiCard-root * { color: #111827 !important; }
+
+/* Products dialog inside MasterPage */
+body.light-mode .MuiDialog-paper .MuiAvatar-root { background-color: #e8edf2 !important; color: #374151 !important; }
+body.light-mode .MuiDialog-paper .MuiChip-root { background-color: #e8edf2 !important; color: #374151 !important; }
+body.light-mode .MuiDialog-paper .MuiInputBase-root { background: transparent !important; color: #111827 !important; }
+body.light-mode .MuiDialog-paper input[type="datetime-local"] { background: #ffffff !important; color: #111827 !important; border-color: rgba(0,0,0,0.2) !important; }
+
+/* Dividers */
+body.light-mode .MuiDivider-root { border-color: rgba(0,0,0,0.1) !important; }
+
+/* Chips */
+body.light-mode .MuiChip-root { color: #111827 !important; }
+
+/* Footer — light mode (excludes login-page-footer which stays dark) */
+body.light-mode footer:not(.login-page-footer) {
+  background: #e8edf2 !important;
+  background-color: #e8edf2 !important;
+  color: #374151 !important;
+}
+/* Native form elements — override system dark-mode media-query rules */
+body.light-mode select,
+body.light-mode input,
+body.light-mode input[type="text"],
+body.light-mode input[type="number"],
+body.light-mode input[type="password"],
+body.light-mode input[type="email"],
+body.light-mode input[type="datetime-local"],
+body.light-mode input[type="search"],
+body.light-mode textarea {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+body.light-mode option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Fix MUI inner <input> elements (rendered inside TextField) in light mode */
+body.light-mode .MuiInputBase-input,
+body.light-mode .MuiInputBase-inputAdornedEnd,
+body.light-mode .MuiOutlinedInput-input {
+  background-color: transparent !important;
+  color: #111827 !important;
+}
+
+/* Fix dialogs in light mode — override the global white-text rule */
+body.light-mode .MuiDialog-paper,
+body.light-mode .MuiDialog-paper * {
+  color: #111827 !important;
+}
+body.light-mode .MuiDialogTitle-root,
+body.light-mode .MuiDialogContent-root,
+body.light-mode .MuiDialogActions-root {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiDialog-paper .MuiOutlinedInput-root,
+body.light-mode .MuiDialog-paper .MuiInputBase-root {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiDialog-paper .MuiInputLabel-root { color: #6b7280 !important; }
+body.light-mode .MuiDialog-paper .MuiOutlinedInput-notchedOutline { border-color: rgba(0,0,0,0.2) !important; }
+body.light-mode .MuiDialog-paper .MuiInputBase-input { color: #111827 !important; background-color: transparent !important; }
+body.light-mode .MuiDialog-paper select,
+body.light-mode .MuiDialog-paper input { background-color: #ffffff !important; color: #111827 !important; }
+
+/* Fix popover/menu text in light mode — override global white-text rule */
+body.light-mode .MuiPopover-paper *,
+body.light-mode .MuiMenu-paper * { color: #111827 !important; }
+
+/* Content-wrap / page-shell panel background */
+body.light-mode .content-wrap,
+body.light-mode .page-shell .content-wrap {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Buttons — light mode */
+body.light-mode button,
+body.light-mode .btn,
+body.light-mode .primary-btn,
+body.light-mode .MuiButton-root {
+  background: #0d0d0e !important;
+  background-color: #0c0c0c !important;
+  color: #ffffff !important;
+}
+body.light-mode .MuiButton-root:hover,
+body.light-mode button:hover {
+  background: #0d0d0e !important;
+  background-color: #0c0c0c !important;
+}
+
+/* Keep Show + See more buttons using same blue in light mode */
+body.light-mode .show-btn,
+body.light-mode .MuiButton-root.show-btn,
+body.light-mode button.show-btn,
+body.light-mode .see-more-btn,
+body.light-mode .dt-master-metrics-row .MuiButton-containedPrimary,
+body.light-mode .dt-master-card-x .see-more-btn {
+  background: #b4d7ff !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+body.light-mode .show-btn:hover,
+body.light-mode .MuiButton-root.show-btn:hover,
+body.light-mode .see-more-btn:hover,
+body.light-mode .dt-master-metrics-row .MuiButton-containedPrimary:hover,
+body.light-mode .dt-master-card-x .see-more-btn:hover {
+  background: #b4d7ff !important;
+  background-image: none !important;
+}
+
+/* Topbar inline search — light mode: force transparent bg + white text so it's
+   visible against the blue topbar regardless of the global white-bg input rule */
+body.light-mode .topbar-right .MuiInputBase-input,
+body.light-mode .topbar-right .MuiInputBase-root,
+body.light-mode .topbar-right input {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+body.light-mode .topbar-right .MuiInputBase-input::placeholder,
+body.light-mode .topbar-right input::placeholder {
+  color: rgba(255,255,255,0.55) !important;
+}
+
+/* Topbar — light mode */
+body.light-mode header,
+body.light-mode .topbar,
+body.light-mode .MuiAppBar-root,
+body.light-mode .page-header,
+body.light-mode .dashboard-header,
+body.light-mode .dt-topbar-x {
+  background-color: #444a4f !important;
+  background: #444a4f !important;
+  color: #ffffff !important;
+}
+body.light-mode .topbar-brand,
+body.light-mode .topbar *,
+body.light-mode .MuiAppBar-root *,
+body.light-mode .MuiToolbar-root * {
+  color: #ffffff !important;
+}
+
+/* ===== END LIGHT MODE ===== */
+
+/* ===== LOGIN PAGE — always dark regardless of theme toggle ===== */
+body.light-mode .login-page {
+  background-color: #0f1419 !important;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(167,139,250,0.08) 0%, transparent 25%),
+    radial-gradient(circle at 85% 90%, rgba(139,92,246,0.06) 0%, transparent 28%),
+    linear-gradient(180deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%) !important;
+  color: #e8ecf1 !important;
+}
+
+body.light-mode .login-page,
+body.light-mode .login-page * {
+  color: #e8ecf1 !important;
+}
+
+body.light-mode .login-card {
+  background: rgba(26,31,46,0.85) !important;
+  border-color: rgba(167,139,250,0.15) !important;
+  color: #e8ecf1 !important;
+}
+
+body.light-mode .login-page input,
+body.light-mode .login-page input[type="text"],
+body.light-mode .login-page input[type="password"],
+body.light-mode .login-page input[type="email"] {
+  background-color: #1a1f2e !important;
+  color: #e8ecf1 !important;
+  border-color: rgba(167,139,250,0.15) !important;
+}
+
+body.light-mode .login-page .MuiInputBase-input,
+body.light-mode .login-page .MuiOutlinedInput-input {
+  background-color: transparent !important;
+  color: #e8ecf1 !important;
+}
+
+body.light-mode .login-page .MuiInputLabel-root { color: #8892a0 !important; }
+body.light-mode .login-page .MuiOutlinedInput-notchedOutline { border-color: rgba(167,139,250,0.15) !important; }
+body.light-mode .login-page .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline { border-color: rgba(167,139,250,0.4) !important; }
+
+body.light-mode .login-page-footer {
+  background: linear-gradient(180deg, rgba(15,20,25,0.0), rgba(15,20,25,0.8)) !important;
+  background-color: transparent !important;
+  color: #8892a0 !important;
+}
+/* Login side card — always black background regardless of theme */
+.login-side-card,
+.login-side-card.MuiCard-root,
+.login-side-card.MuiPaper-root {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+body.light-mode .login-side-card,
+body.light-mode .login-side-card.MuiCard-root,
+body.light-mode .login-side-card.MuiPaper-root {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+/* ===== END LOGIN PAGE DARK OVERRIDE ===== */
+
+/* ===== GLOBAL BUTTON COLOR OVERRIDE — #b4d7ff for all themes ===== */
+body .MuiButton-root:not(.MuiIconButton-root),
+body button.MuiButtonBase-root:not(.MuiIconButton-root):not(.MuiMenuItem-root):not(.MuiListItemButton-root) {
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
+}
+body .MuiButton-root:not(.MuiIconButton-root):hover,
+body button.MuiButtonBase-root:not(.MuiIconButton-root):not(.MuiMenuItem-root):not(.MuiListItemButton-root):hover {
+  background: #b4d7ff !important;
+  color: #1a2744 !important;
+}
+/* Outlined and text variants stay transparent */
+body .MuiButton-outlined:not(.show-btn):not(.see-more-btn),
+body .MuiButton-text:not(.show-btn):not(.see-more-btn) {
+  background: transparent !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+/* Search clear (×) button — transparent bg, white icon (dark theme) */
+button.search-clear-btn,
+.search-clear-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+}
+/* Light theme: dark visible cross icon */
+body.light-mode button.search-clear-btn,
+body.light-mode .search-clear-btn,
+body.light-mode .search-clear-btn .MuiSvgIcon-root {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+/* ===== END GLOBAL BUTTON COLOR OVERRIDE ===== */
+
+/* ===== DATETIME-LOCAL INPUT — RESPONSIVE ===== */
+/* Native datetime inputs must stretch to fill their container on all screen
+   sizes. Without width:100% they render at intrinsic width (~200-260px) and
+   overflow table cells / card columns on narrow viewports. */
+input[type="datetime-local"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  input[type="datetime-local"] {
+    font-size: 16px; /* iOS Safari zooms in on <16px inputs — prevent that */
+    padding: 8px 6px;
+  }
+}
+/* ===== END DATETIME-LOCAL INPUT ===== */
+
+/* ===== COLUMN FILTER BUTTON (Inventory & Approval pages) ===== */
+/* Button — blue border + icon in both themes, beats any MUI class override */
+.col-filter-btn.MuiIconButton-root {
+  border: 1px solid #b4d7ff !important;
+  color: #b4d7ff !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.col-filter-btn.MuiIconButton-root:hover {
+  background: rgba(24, 119, 242, 0.08) !important;
+  background-color: rgba(24, 119, 242, 0.08) !important;
+  border-color: #b4d7ff !important;
+}
+.col-filter-btn .MuiSvgIcon-root,
+.col-filter-btn svg {
+  color: #b4d7ff !important;
+  fill: currentColor !important;
+}
+
+/* Dropdown menu — explicit white background + dark text in light mode */
+body.light-mode .col-filter-menu.MuiPaper-root {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+/* Label text in menu items */
+body.light-mode .col-filter-menu .MuiMenuItem-root,
+body.light-mode .col-filter-menu .MuiListItemText-primary {
+  color: #111827 !important;
+}
+/* Hover — blue tint, override global purple hover */
+body.light-mode .col-filter-menu .MuiMenuItem-root:hover {
+  background-color: rgba(24, 119, 242, 0.08) !important;
+}
+/* Checkbox icon — blue in both themes, beats .MuiMenu-paper * { color: #111827 } */
+body.light-mode .col-filter-menu .MuiCheckbox-root .MuiSvgIcon-root,
+body.light-mode .col-filter-menu .MuiCheckbox-root svg {
+  color: #b4d7ff !important;
+  fill: currentColor !important;
+}
+/* Dark mode — keep dropdown looking right too */
+body:not(.light-mode) .col-filter-menu.MuiPaper-root {
+  background-color: var(--card-bg) !important;
+  color: var(--text) !important;
+}
+body:not(.light-mode) .col-filter-menu .MuiMenuItem-root:hover {
+  background-color: rgba(24, 119, 242, 0.12) !important;
+}
+/* ===== END COLUMN FILTER BUTTON ===== */
+
+/* ===== TABLE SORT ARROWS — always visible ===== */
+.MuiTableSortLabel-icon {
+  opacity: 0.4 !important;
+}
+.MuiTableSortLabel-root.Mui-active .MuiTableSortLabel-icon {
+  opacity: 1 !important;
+}
+/* ===== END TABLE SORT ARROWS ===== */
+
+/* ================================================================
+   RESPONSIVE — Full-site breakpoints
+   Breakpoints: 1024px (tablet), 768px (small tablet), 480px (mobile)
+   ================================================================ */
+
+/* ── Shared: tables always scroll horizontally ── */
+.MuiTableContainer-root,
+.MuiTable-root {
+  overflow-x: auto !important;
+}
+
+/* ── Shared: content wrappers scale padding ── */
+.page-shell {
+  padding: 20px 0 !important;
+}
+.content-wrap,
+.panel {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+/* ── Shared: prevent any element from causing horizontal scroll ── */
+.main-column {
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* ================================================================
+   TABLET  ≤ 1024px
+   ================================================================ */
+@media (max-width: 1024px) {
+  .TopBar { padding: 10px 14px !important; gap: 8px !important; }
+
+  /* Overview/dashboard cards: 2 columns */
+  .overview-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  /* Add Item / forms: reduce max-width */
+  .add-item-form,
+  .content-wrap.panel {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Inventory / approval table: let columns shrink */
+  .MuiTable-root {
+    min-width: 700px !important;
+  }
+
+  /* Locker grid: 2 cols */
+  .master-lockers-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ================================================================
+   SMALL TABLET  ≤ 768px
+   ================================================================ */
+@media (max-width: 768px) {
+  /* TopBar */
+  .TopBar {
+    padding: 8px 10px !important;
+    height: 56px !important;
+    gap: 6px !important;
+  }
+  .TopBar .topbar-left img {
+    height: 38px !important;
+  }
+
+  /* Layout: full-width content, no left margin from sidebar */
+  .main-column {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Dashboard cards: 1 column */
+  .overview-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 0 8px !important;
+  }
+
+  /* Locker grid: 1 col */
+  .master-lockers-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Content padding tighter */
+  .page-shell { padding: 12px 0 !important; }
+  .content-wrap, .panel { padding-left: 8px !important; padding-right: 8px !important; }
+
+  /* Page headings */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.05rem !important; }
+
+  /* Tables: minimum column width shrinks further */
+  .MuiTable-root { min-width: 480px !important; }
+
+  /* Table font size */
+  .MuiTableCell-root { font-size: 0.82rem !important; padding: 10px 12px !important; }
+  .MuiTableCell-head { padding: 12px 12px !important; }
+
+  /* Approval / Inventory filter row: wrap */
+  .MuiFormControl-root,
+  .MuiSelect-root { min-width: 120px !important; max-width: 160px !important; }
+
+  /* Buttons: don't force full-width unless inside a stack */
+  .MuiButton-root { font-size: 0.82rem !important; padding: 6px 14px !important; }
+
+  /* Add Item form */
+  .add-item-form select,
+  .add-item-form input[type="number"],
+  .add-item-form input[type="text"] {
+    width: 100% !important;
+  }
+
+  /* Header row with buttons (Upload/Download) stacks */
+  div[style*="justifyContent: space-between"] {
+    flex-wrap: wrap !important;
+  }
+}
+
+/* ================================================================
+   MOBILE  ≤ 480px
+   ================================================================ */
+@media (max-width: 480px) {
+  /* TopBar: very compact */
+  .TopBar {
+    padding: 6px 8px !important;
+    height: 52px !important;
+    gap: 4px !important;
+  }
+  .TopBar .topbar-left img {
+    height: 32px !important;
+  }
+
+  /* Page content: minimal padding */
+  .page-shell { padding: 8px 0 !important; }
+  .content-wrap, .panel { padding-left: 6px !important; padding-right: 6px !important; }
+
+  /* Headings */
+  h1 { font-size: 1.25rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 0.95rem !important; }
+
+  /* Table cells: tighter */
+  .MuiTableCell-root { font-size: 0.78rem !important; padding: 8px 8px !important; }
+  .MuiTableCell-head { font-size: 0.78rem !important; padding: 10px 8px !important; }
+
+  /* Chips */
+  .MuiChip-root { font-size: 0.72rem !important; height: 24px !important; }
+
+  /* Buttons smaller */
+  .MuiButton-root { font-size: 0.78rem !important; padding: 5px 10px !important; min-height: 36px !important; }
+
+  /* Status filter + column toggle row: wrap */
+  .MuiFormControl-root { width: 100% !important; }
+
+  /* Approval/Inventory filter bar: wrap onto 2 lines */
+  .MuiBox-root[style*="display: flex"][style*="gap"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Add item form: full-width selects */
+  .add-item-form select { width: 100% !important; }
+
+  /* Master locker/dashboard cards */
+  .MuiCard-root { border-radius: 8px !important; }
+  .MuiCardContent-root { padding: 12px !important; }
+
+  /* Overview grid tight */
+  .overview-grid {
+    gap: 8px !important;
+    padding: 0 6px !important;
+  }
+}
+
+/* ── TopBar search hide/show handled via MUI sx in JSX ── */
+
+/* ── Locker page search bar responsive ── */
+@media (max-width: 768px) {
+  .dt-searchbar-x {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+  .dt-searchbar-x input,
+  .dt-searchbar-x .MuiInputBase-root {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .dt-title-x {
+    font-size: 1.4rem !important;
+    margin-left: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dt-title-x {
+    font-size: 1.15rem !important;
+    margin-left: 8px !important;
+  }
+}
+
+/* ── Light mode: keep responsive overrides consistent ── */
+@media (max-width: 768px) {
+  body.light-mode .page-shell {
+    background: #f4f6f8 !important;
+  }
+}
+/* ================================================================
+   END RESPONSIVE
+   ================================================================ */
+
+/* ================================================================
+   ADD ITEM PAGE — Responsive
+   ================================================================ */
+
+/* Header row: title left + buttons right → stack on mobile */
+@media (max-width: 600px) {
+  .add-item-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .add-item-header-row > div:last-child {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    margin-top: 8px !important;
+  }
+  .add-item-header-row > div:last-child .MuiButton-root {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 0.78rem !important;
+  }
+}
+
+/* Select + button row: stack vertically on mobile */
+@media (max-width: 600px) {
+  .add-item-field-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .add-item-field-row select {
+    width: 100% !important;
+  }
+  .add-item-field-row .MuiButton-root {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Selects and inputs: full width on mobile */
+@media (max-width: 600px) {
+  .add-item-form select,
+  .add-item-form input[type="number"],
+  .add-item-form input[type="text"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  /* Action buttons at bottom: full width each */
+  .add-item-form > div[style*="display: flex"][style*="marginTop"] .MuiButton-root {
+    flex: 1 !important;
+  }
+}
+
+/* ================================================================
+   ADD USER PAGE — Responsive
+   ================================================================ */
+
+/* Two-column layout (form + user list) → single column on tablet/mobile */
+@media (max-width: 768px) {
+  .add-user-two-col {
+    flex-direction: column !important;
+  }
+  .add-user-list-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* User list card: fix text overflow on small screens */
+@media (max-width: 480px) {
+  .add-user-list-card .MuiCardContent-root {
+    padding: 10px !important;
+  }
+  .add-user-list-card .MuiCard-root {
+    padding: 6px !important;
+  }
+  /* Form action buttons: full width on tiny screens */
+  .add-user-two-col .MuiBox-root[style*="flex-end"] {
+    flex-direction: column !important;
+  }
+  .add-user-two-col .MuiBox-root[style*="flex-end"] .MuiButton-root {
+    width: 100% !important;
+  }
+}
+
+/* ================================================================
+   END ADD ITEM / ADD USER RESPONSIVE
+   ================================================================ */
