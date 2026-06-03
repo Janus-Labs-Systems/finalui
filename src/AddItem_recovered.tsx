@@ -604,14 +604,14 @@ export default function AddItemPage() {
                 type="file"
                 hidden
                 multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv"
+                accept=".csv"
                 onChange={async (e) => {
                   setCsvError(null);
                   setCsvSuccess(false);
                   const files = e.target.files;
                   if (!files || files.length === 0) return;
                   const csvFile = Array.from(files).find((f) => f.name.toLowerCase().endsWith(".csv"));
-                  if (!csvFile) { console.log("Non-CSV files selected:", files); return; }
+                  if (!csvFile) { setCsvError("Only CSV files are allowed. Please download and use the CSV pattern template."); return; }
                   setCsvProcessing(true);
                   try {
                     const text = await csvFile.text();
@@ -625,6 +625,7 @@ export default function AddItemPage() {
                     const colIndex = (name: string) => rawHeaders.findIndex((h) => h.toLowerCase() === name.toLowerCase());
                     const idxProductServerId = colIndex("ProductServerId");
                     const idxSerialNumber    = colIndex("SerialNumber");
+                    const idxName            = colIndex("Name");
                     const idxDisplayName     = colIndex("DisplayName");
                     const idxCategoryId      = colIndex("CategoryId");
                     const idxSubCategoryId   = colIndex("SubCategoryId");
@@ -637,7 +638,9 @@ export default function AddItemPage() {
                       const rowNum = i + 2;
                       const productServerId = cols[idxProductServerId] ?? "";
                       const serialNumber    = cols[idxSerialNumber] ?? "";
+                      const name            = idxName >= 0 ? (cols[idxName] ?? "") : "";
                       const displayName     = idxDisplayName >= 0 ? (cols[idxDisplayName] ?? "") : "";
+                      const itemName        = name || displayName;
                       const categoryId      = cols[idxCategoryId] ?? "";
                       const subCategoryId   = cols[idxSubCategoryId] ?? "";
                       const lockerId        = idxLockerId >= 0 ? (cols[idxLockerId] ?? "") : "";
@@ -652,7 +655,7 @@ export default function AddItemPage() {
                       if (categoryId && isNaN(catId))      rowErrors.push(`Row ${rowNum}: CategoryId must be a number`);
                       if (subCategoryId && isNaN(subId))   rowErrors.push(`Row ${rowNum}: SubCategoryId must be a number`);
                       if (rowErrors.every((err) => !err.startsWith(`Row ${rowNum}`))) {
-                        items.push({ ProductServerId: psid, productServerId: psid, ProductServerID: psid, productserverid: psid, SerialNumber: serialNumber || null, Name: displayName || null, CategoryId: isNaN(catId) ? null : catId, SubCategoryId: isNaN(subId) ? null : subId, LockerId: lockerId && !isNaN(Number(lockerId)) ? Number(lockerId) : null });
+                        items.push({ ProductServerId: psid, productServerId: psid, ProductServerID: psid, productserverid: psid, SerialNumber: serialNumber || null, Name: itemName || null, CategoryId: isNaN(catId) ? null : catId, SubCategoryId: isNaN(subId) ? null : subId, LockerId: lockerId && !isNaN(Number(lockerId)) ? Number(lockerId) : null });
                       }
                     });
                     if (rowErrors.length > 0) { setCsvError("Incomplete CSV — " + rowErrors[0] + (rowErrors.length > 1 ? ` (+${rowErrors.length - 1} more issues)` : "")); setCsvProcessing(false); return; }
@@ -667,7 +670,7 @@ export default function AddItemPage() {
             <Button
               variant="contained"
               onClick={() => {
-                const header = "ProductServerId,SerialNumber,DisplayName,CategoryId,SubCategoryId,LockerId";
+                const header = "ProductServerId,SerialNumber,Name,CategoryId,SubCategoryId,LockerId";
                 const sample = "42,SN-001,Daimler Wrench 200w,3,7,1";
                 const csv = `${header}\n${sample}\n`;
                 const blob = new Blob([csv], { type: "text/csv" });
