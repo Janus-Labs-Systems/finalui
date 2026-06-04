@@ -517,7 +517,17 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack, show
                                 <div style={{ marginTop: 8, display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
                                   <div>
                                     <div style={{ color: "var(--danger)", fontWeight: 700, fontSize: 16 }}>Size</div>
-                                    <div style={{ color: "var(--text)", fontSize: 12, marginTop: 2 }}>{String(l.locker_size ?? l.LockerSize ?? l.size ?? "Micro")}</div>
+                                    <div style={{ color: "var(--text)", fontSize: 12, marginTop: 2 }}>{(() => {
+  const LOCKER_SIZE_ID_MAP: Record<string, string> = { "1": "Micro", "2": "Mini", "3": "Medium", "4": "Big", "5": "Biggest" };
+  const sizeRaw = String(l.locker_size ?? (l as any).LockerSize ?? (l as any).size ?? "").toLowerCase().trim();
+  if (sizeRaw.includes("biggest")) return "Biggest";
+  if (sizeRaw.includes("medium")) return "Medium";
+  if (sizeRaw.includes("micro")) return "Micro";
+  if (sizeRaw.includes("mini")) return "Mini";
+  if (sizeRaw === "big") return "Big";
+  const idStr = String((l as any).locker_size_Id ?? (l as any).LockerSizeId ?? (l as any).locker_size_id ?? "").trim();
+  return LOCKER_SIZE_ID_MAP[idStr] ?? LOCKER_SIZE_ID_MAP[sizeRaw] ?? "—";
+})()}</div>
                                   </div>
 
                                   <div>

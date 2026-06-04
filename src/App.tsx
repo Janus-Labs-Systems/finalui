@@ -196,6 +196,20 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
   );
 }
 
+const PAGE_PATHS: Record<string, string> = {
+  dashboard: "/dashboard",
+  lockers: "/lockers",
+  inventory: "/inventory",
+  approvals: "/approvals",
+  additem: "/additem",
+  adduser: "/adduser",
+  editreturn: "/editreturn",
+  profile: "/profile",
+};
+const PATH_PAGES: Record<string, string> = Object.fromEntries(
+  Object.entries(PAGE_PATHS).map(([page, path]) => [path, page])
+);
+
 function App() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -291,11 +305,16 @@ function App() {
 
   // Handle browser back/forward navigation for approval/add pages and keep history entries
   React.useEffect(() => {
-    // set an initial replaceState representing the main page
-    window.history.replaceState(
-      { approval: false, additem: false, adduser: false, editreturn: false },
-      ""
-    );
+    // set an initial replaceState with the current page URL
+    const initPath = window.location.pathname;
+    const initPage = PATH_PAGES[initPath] || "dashboard";
+    if (!initPath.startsWith("/master/")) {
+      window.history.replaceState(
+        { approval: false, additem: false, adduser: false, editreturn: false },
+        "",
+        PAGE_PATHS[initPage] || "/dashboard"
+      );
+    }
 
     const handlePopState = (ev: PopStateEvent) => {
       const state = (ev.state as any) || {};
@@ -304,6 +323,16 @@ function App() {
       setShowAddUserPage(Boolean(state.adduser));
       setShowEditReturnTime(Boolean(state.editreturn));
       prevStateRef.current = state;
+
+      // Sync main page state from URL when no sub-page is active
+      if (!state.approval && !state.additem && !state.adduser && !state.editreturn) {
+        const path = window.location.pathname;
+        const page = PATH_PAGES[path] || "dashboard";
+        setCurrentPage(page);
+        setShowInventoryPage(page === "inventory");
+        setShowLockersPage(page === "lockers");
+        setShowProfilePage(page === "profile");
+      }
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -363,6 +392,23 @@ function App() {
       }
     }
   }, []);
+
+  // On login, navigate to whatever page the URL points at
+  React.useEffect(() => {
+    if (!loggedIn) return;
+    const path = window.location.pathname;
+    if (path.startsWith("/master/")) return;
+    const page = PATH_PAGES[path];
+    if (!page || page === "dashboard") return;
+    setCurrentPage(page);
+    setShowInventoryPage(page === "inventory");
+    setShowLockersPage(page === "lockers");
+    setShowProfilePage(page === "profile");
+    if (page === "approvals") { setApprovalPageInitialFilter("All"); setShowApprovalPage(true); }
+    if (page === "additem") setShowAddItemPage(true);
+    if (page === "adduser") setShowAddUserPage(true);
+    if (page === "editreturn") setShowEditReturnTime(true);
+  }, [loggedIn]);
 
   // Load existing min return time into state
   React.useEffect(() => {
@@ -586,7 +632,21 @@ function App() {
           <img
             src="/DexboxHomePageLogo2.png"
             alt="Dexbox"
-            style={{ height: 54, width: "auto", display: "inherit", objectFit: "fill" }}
+            onClick={() => {
+              setShowApprovalPage(false);
+              setShowAddItemPage(false);
+              setShowAddUserPage(false);
+              setShowEditReturnTime(false);
+              setShowInventoryPage(false);
+              setShowLockersPage(false);
+              setShowProfilePage(false);
+              setMasterModeActive(false);
+              setCurrentPage("dashboard");
+              window.history.pushState({}, "", "/dashboard");
+            }}
+            style={{ height: 54, width: "auto", display: "inherit", objectFit: "fill", cursor: "pointer", transition: "transform 0.2s ease, filter 0.2s ease" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.08)"; (e.currentTarget as HTMLImageElement).style.filter = "brightness(1.2)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; (e.currentTarget as HTMLImageElement).style.filter = "brightness(1)"; }}
           />
         </div>
         <div className="topbar-center">
@@ -980,6 +1040,9 @@ function App() {
               setPreviousMainPage("dashboard");
               setShowLockersPage(false);
             }
+            // Push URL for this page
+            const targetPath = PAGE_PATHS[page];
+            if (targetPath) window.history.pushState({ page }, "", targetPath);
           }}
           onLogout={handleLogout}
           currentPage={currentPage}

@@ -316,7 +316,17 @@ export function useLiveLoadData() {
     const fetchData = async () => {
       try {
         const result = await fetchLoadData();
-        if (isMounted) setData(result);
+        // Normalize to array — API may wrap the list in a property
+        const arr = Array.isArray(result)
+          ? result
+          : result?.LockerDetails ??
+            result?.lockerdetails ??
+            result?.lockerDetails ??
+            result?.Lockers ??
+            result?.lockers ??
+            result?.data ??
+            (result && typeof result === "object" ? Object.values(result) : []);
+        if (isMounted) setData(Array.isArray(arr) ? arr : []);
       } catch {
         // Optionally handle error
       }

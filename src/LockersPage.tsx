@@ -119,8 +119,8 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
   // Update groupedData whenever liveData changes
   useEffect(() => {
     if (!liveData) return;
-    // Group data by mlockerId
-    const grouped = liveData.reduce(
+    const arr = Array.isArray(liveData) ? liveData : [];
+    const grouped = arr.reduce(
       (acc: { [x: string]: any[] }, item: { mlockerId: string | number }) => {
         if (!acc[item.mlockerId]) acc[item.mlockerId] = [];
         acc[item.mlockerId].push(item);
@@ -417,10 +417,28 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
     }
   };
 
+  const LOCKER_SIZE_ID_MAP: Record<string, string> = { "1": "Micro", "2": "Mini", "3": "Medium", "4": "Big", "5": "Biggest" };
+
+  const resolveLockerSize = (l: any): string => {
+    const sizeRaw = String(
+      l.locker_size ?? l.LockerSize ?? l.Locker_Size ?? l.locker_Size ?? l.locker_type ?? l.LockerType ?? l.size ?? ""
+    ).toLowerCase().trim();
+    if (sizeRaw.includes("biggest")) return "Biggest";
+    if (sizeRaw.includes("medium")) return "Medium";
+    if (sizeRaw.includes("micro")) return "Micro";
+    if (sizeRaw.includes("mini")) return "Mini";
+    if (sizeRaw === "big") return "Big";
+    // Fall back to numeric ID lookup
+    const idStr = String(
+      l.locker_size_Id ?? l.LockerSizeId ?? l.locker_size_id ?? l.LockerSize_Id ?? ""
+    ).trim();
+    return LOCKER_SIZE_ID_MAP[idStr] ?? (LOCKER_SIZE_ID_MAP[sizeRaw] ?? "Other");
+  };
+
   const computeMasterStats = (lockers: Locker[]) => {
     const totalLockers = lockers.length;
     let totalProducts = 0;
-    const sizeCounts: Record<string, number> = { Micro: 0, Mini: 0, Macro: 0, Mega: 0, Other: 0 };
+    const sizeCounts: Record<string, number> = { Micro: 0, Mini: 0, Medium: 0, Big: 0, Biggest: 0, Other: 0 };
     let emptyLockerCount = 0;
 
     for (const l of lockers) {
@@ -429,11 +447,8 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
       totalProducts += pCount;
       if (pCount === 0) emptyLockerCount++;
 
-      const sizeRaw = String(l.locker_size ?? "").toLowerCase();
-      if (sizeRaw.includes("micro")) sizeCounts.Micro++;
-      else if (sizeRaw.includes("mini")) sizeCounts.Mini++;
-      else if (sizeRaw.includes("macro")) sizeCounts.Macro++;
-      else if (sizeRaw.includes("mega")) sizeCounts.Mega++;
+      const sizeName = resolveLockerSize(l);
+      if (sizeCounts[sizeName] !== undefined) sizeCounts[sizeName]++;
       else sizeCounts.Other++;
     }
 
@@ -576,13 +591,18 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
                       </div>
 
                       <div className="metric">
-                        <div className="metric-label">Macro</div>
-                        <div className="metric-value">{stats.sizeCounts.Macro}</div>
+                        <div className="metric-label">Medium</div>
+                        <div className="metric-value">{stats.sizeCounts.Medium}</div>
                       </div>
 
                       <div className="metric">
-                        <div className="metric-label">Mega</div>
-                        <div className="metric-value">{stats.sizeCounts.Mega}</div>
+                        <div className="metric-label">Big</div>
+                        <div className="metric-value">{stats.sizeCounts.Big}</div>
+                      </div>
+
+                      <div className="metric">
+                        <div className="metric-label">Biggest</div>
+                        <div className="metric-value">{stats.sizeCounts.Biggest}</div>
                       </div>
 
                       <div className="metric metric-location">

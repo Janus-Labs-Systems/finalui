@@ -390,7 +390,8 @@ const DynamicTables = ({
   const computeMasterStats = (lockers: Locker[]) => {
     const totalLockers = lockers.length;
     let totalProducts = 0;
-    const sizeCounts: Record<string, number> = { Micro: 0, Mini: 0, Macro: 0, Mega: 0, Other: 0 };
+    const LOCKER_SIZE_ID_MAP: Record<string, string> = { "1": "Micro", "2": "Mini", "3": "Medium", "4": "Big", "5": "Biggest" };
+    const sizeCounts: Record<string, number> = { Micro: 0, Mini: 0, Medium: 0, Big: 0, Biggest: 0, Other: 0 };
     let emptyLockerCount = 0;
 
     for (const l of lockers) {
@@ -399,11 +400,18 @@ const DynamicTables = ({
       totalProducts += pCount;
       if (pCount === 0) emptyLockerCount++;
 
-      const sizeRaw = String(l.locker_size ?? l.LockerSize ?? l.size ?? "").toLowerCase();
-      if (sizeRaw.includes("micro")) sizeCounts.Micro++;
-      else if (sizeRaw.includes("mini")) sizeCounts.Mini++;
-      else if (sizeRaw.includes("macro")) sizeCounts.Macro++;
-      else if (sizeRaw.includes("mega")) sizeCounts.Mega++;
+      const sizeRaw = String(l.locker_size ?? (l as any).LockerSize ?? (l as any).locker_Size ?? (l as any).size ?? "").toLowerCase().trim();
+      let sizeName = "Other";
+      if (sizeRaw.includes("biggest")) sizeName = "Biggest";
+      else if (sizeRaw.includes("medium")) sizeName = "Medium";
+      else if (sizeRaw.includes("micro")) sizeName = "Micro";
+      else if (sizeRaw.includes("mini")) sizeName = "Mini";
+      else if (sizeRaw === "big") sizeName = "Big";
+      else {
+        const idStr = String((l as any).locker_size_Id ?? (l as any).LockerSizeId ?? (l as any).locker_size_id ?? "").trim();
+        sizeName = LOCKER_SIZE_ID_MAP[idStr] ?? (LOCKER_SIZE_ID_MAP[sizeRaw] ?? "Other");
+      }
+      if (sizeCounts[sizeName] !== undefined) sizeCounts[sizeName]++;
       else sizeCounts.Other++;
     }
 
@@ -530,13 +538,18 @@ const DynamicTables = ({
                       </div>
 
                       <div className="metric">
-                        <div className="metric-label">Macro</div>
-                        <div className="metric-value">{stats.sizeCounts.Macro}</div>
+                        <div className="metric-label">Medium</div>
+                        <div className="metric-value">{stats.sizeCounts.Medium}</div>
                       </div>
 
                       <div className="metric">
-                        <div className="metric-label">Mega</div>
-                        <div className="metric-value">{stats.sizeCounts.Mega}</div>
+                        <div className="metric-label">Big</div>
+                        <div className="metric-value">{stats.sizeCounts.Big}</div>
+                      </div>
+
+                      <div className="metric">
+                        <div className="metric-label">Biggest</div>
+                        <div className="metric-value">{stats.sizeCounts.Biggest}</div>
                       </div>
 
                       <div className="metric metric-location">
