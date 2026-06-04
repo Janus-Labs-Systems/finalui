@@ -191,12 +191,7 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
         </div>
       </div>
 
-      {/* login page footer (visible on login screen) */}
-      <footer className="login-page-footer" aria-hidden="false">
-        <small>
-          &copy; 2025 DexBoxZ ADV. All rights reserved. | Legal Disclaimer: This is dummy legal information for demonstration purposes only.
-        </small>
-      </footer>
+
     </div>
   );
 }
@@ -1240,20 +1235,7 @@ function App() {
             </Button>
           </DialogActions>
         </Dialog>
-        <footer
-          style={{
-            padding: "4px 12px",
-            textAlign: "left",
-            position: "fixed",
-            bottom: "0",
-            width: "100%",
-          }}
-        >
-          <small>
-            © 2025 DexBoxZ ADV. All rights reserved. | Legal Disclaimer: This is
-            dummy legal information for demonstration purposes only.
-          </small>
-        </footer>
+
         </div>
       </div>
     </>
