@@ -644,13 +644,59 @@ export async function insertCataloguesBulk(
 ): Promise<number[] | null> {
   const token = getSessionToken();
   try {
+    // Transform items to match backend expectations
+    // The backend may expect different field names, so normalize them
+    const transformedItems = items.map((item) => {
+      // Create a normalized object that handles multiple possible field name conventions
+      const normalized: any = {};
+
+      // Send ProductServerId only — that is the field the backend expects
+      const productServerId =
+        item.ProductServerId ?? item.productServerId ?? item.qtId ?? item.ProductId ?? item.productId ?? null;
+      if (productServerId != null) normalized.ProductServerId = productServerId;
+
+      // SerialNumber
+      const serialNumber = item.SerialNumber ?? item.serialNumber ?? null;
+      if (serialNumber != null) normalized.SerialNumber = serialNumber;
+
+      // Name/Product
+      const name = item.Name ?? item.name ?? item.Product ?? item.product ?? null;
+      if (name != null) normalized.Name = name;
+
+      // CategoryId
+      const categoryId = item.CategoryId ?? item.categoryId ?? item.Category_Id ?? null;
+      if (categoryId != null) normalized.CategoryId = categoryId;
+
+      // SubCategoryId
+      const subCategoryId = item.SubCategoryId ?? item.subCategoryId ?? item.SubCategory_Id ?? null;
+      if (subCategoryId != null) normalized.SubCategoryId = subCategoryId;
+
+      // LockerId
+      const lockerId = item.LockerId ?? item.lockerId ?? item.Locker_Id ?? null;
+      if (lockerId != null) normalized.LockerId = lockerId;
+
+      // DisplayName (if present in CSV)
+      const displayName = item.DisplayName ?? item.displayName ?? null;
+      if (displayName != null) normalized.DisplayName = displayName;
+
+      return normalized;
+    });
+
     // Log the exact JSON body we're about to send for easier debugging
     try {
       // eslint-disable-next-line no-console
-      console.debug("insertCataloguesBulk - body:", JSON.stringify(items));
+      console.debug(
+        "insertCataloguesBulk - original items:",
+        JSON.stringify(items)
+      );
+      // eslint-disable-next-line no-console
+      console.debug(
+        "insertCataloguesBulk - transformed items:",
+        JSON.stringify(transformedItems)
+      );
     } catch {}
 
-    const body = JSON.stringify(items);
+    const body = JSON.stringify(transformedItems);
     // eslint-disable-next-line no-console
     console.debug("insertCataloguesBulk - fetch body:", body);
 
@@ -666,7 +712,23 @@ export async function insertCataloguesBulk(
 
       const text = await fetchResp.text();
       // eslint-disable-next-line no-console
+      console.debug(
+        "insertCataloguesBulk - fetch response status:",
+        fetchResp.status
+      );
+      // eslint-disable-next-line no-console
       console.debug("insertCataloguesBulk - fetch response text:", text);
+
+      // Log response details for debugging 500 errors
+      if (fetchResp.status >= 400) {
+        // eslint-disable-next-line no-console
+        console.error("insertCataloguesBulk - server error response:", {
+          status: fetchResp.status,
+          statusText: fetchResp.statusText,
+          body: text,
+          requestBody: body,
+        });
+      }
 
       let data: any = null;
       try {
@@ -914,7 +976,7 @@ export async function fetchInventory(): Promise<InventoryItem[]> {
       const nextCal = getCaliValue(item, "upcoming");
       const subCat = getSubcategory(item);
       const lockerId = normalizeLockerKey(item.LockerId || item.lockerId || item.Locker_Id || item.locker_Id || "");
-      const location = item.Location || item.location || "Unknown";
+      const location = item.Location || item.location || "INOXPA, Pune";
       
       records.push({
         productId: item.ProductId || item.productId || item.id || "N/A",

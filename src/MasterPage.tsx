@@ -579,7 +579,7 @@ const MasterPage: React.FC<MasterPageProps> = ({ mlockerId: propId, onBack, show
                                 label={
                                   <span>
                                     <span style={{ fontSize: 13, fontWeight: 700 }}>Location: </span>
-                                    <span style={{ fontSize: 11 }}>{l.Location ?? l.site ?? "Unknown"}</span>
+                                    <span style={{ fontSize: 11 }}>{l.Location ?? l.site ?? "INOXPA, Pune"}</span>
                                   </span>
                                 }
                               />

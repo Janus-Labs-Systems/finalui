@@ -527,14 +527,9 @@ export default function AddItemPage() {
           }
 
           const itemsToSend: Array<any> = serialNumbers.map((sn, idx) => ({
-            // ProductServerId variants included to match backend naming
             ProductServerId: finalServerId,
-            productServerId: finalServerId,
-            ProductServerID: finalServerId,
-            productserverid: finalServerId,
-            // Name is the display name per serial (fallback to itemName)
-            Name: (displayNames && displayNames[idx]) || itemName || null,
             SerialNumber: sn || null,
+            Name: (displayNames && displayNames[idx]) || itemName || null,
             CategoryId: toNumericId(rawCat),
             SubCategoryId: toNumericId(rawSub),
             LockerId: toNumericId(selectedLockerMainId) ?? selectedLockerMainId,
@@ -644,25 +639,62 @@ export default function AddItemPage() {
                       const categoryId      = cols[idxCategoryId] ?? "";
                       const subCategoryId   = cols[idxSubCategoryId] ?? "";
                       const lockerId        = idxLockerId >= 0 ? (cols[idxLockerId] ?? "") : "";
+                      
+                      // Validate required fields
                       if (!productServerId) rowErrors.push(`Row ${rowNum}: ProductServerId is empty`);
                       if (!serialNumber)    rowErrors.push(`Row ${rowNum}: SerialNumber is empty`);
                       if (!categoryId)      rowErrors.push(`Row ${rowNum}: CategoryId is empty`);
                       if (!subCategoryId)   rowErrors.push(`Row ${rowNum}: SubCategoryId is empty`);
+                      
                       const psid  = Number(productServerId);
                       const catId = Number(categoryId);
                       const subId = Number(subCategoryId);
-                      if (productServerId && isNaN(psid))  rowErrors.push(`Row ${rowNum}: ProductServerId must be a number`);
-                      if (categoryId && isNaN(catId))      rowErrors.push(`Row ${rowNum}: CategoryId must be a number`);
-                      if (subCategoryId && isNaN(subId))   rowErrors.push(`Row ${rowNum}: SubCategoryId must be a number`);
-                      if (rowErrors.every((err) => !err.startsWith(`Row ${rowNum}`))) {
-                        items.push({ ProductServerId: psid, productServerId: psid, ProductServerID: psid, productserverid: psid, SerialNumber: serialNumber || null, Name: itemName || null, CategoryId: isNaN(catId) ? null : catId, SubCategoryId: isNaN(subId) ? null : subId, LockerId: lockerId && !isNaN(Number(lockerId)) ? Number(lockerId) : null });
+                      
+                      // Validate numeric values
+                      if (productServerId && isNaN(psid))  rowErrors.push(`Row ${rowNum}: ProductServerId must be a number (got: "${productServerId}")`);
+                      if (categoryId && isNaN(catId))      rowErrors.push(`Row ${rowNum}: CategoryId must be a number (got: "${categoryId}")`);
+                      if (subCategoryId && isNaN(subId))   rowErrors.push(`Row ${rowNum}: SubCategoryId must be a number (got: "${subCategoryId}")`);
+                      if (lockerId && isNaN(Number(lockerId))) rowErrors.push(`Row ${rowNum}: LockerId must be a number (got: "${lockerId}")`);
+                      
+                      // Only add if no errors for this row
+                      const rowSpecificErrors = rowErrors.filter((err) => err.startsWith(`Row ${rowNum}`));
+                      if (rowSpecificErrors.length === 0) {
+                        items.push({
+                          ProductServerId: psid,
+                          SerialNumber: serialNumber || null,
+                          Name: itemName || null,
+                          CategoryId: isNaN(catId) ? null : catId,
+                          SubCategoryId: isNaN(subId) ? null : subId,
+                          LockerId: lockerId && !isNaN(Number(lockerId)) ? Number(lockerId) : null,
+                        });
                       }
                     });
-                    if (rowErrors.length > 0) { setCsvError("Incomplete CSV — " + rowErrors[0] + (rowErrors.length > 1 ? ` (+${rowErrors.length - 1} more issues)` : "")); setCsvProcessing(false); return; }
-                    if (items.length === 0) { setCsvError("Incomplete CSV — no valid rows found."); setCsvProcessing(false); return; }
+                    
+                    if (rowErrors.length > 0) { 
+                      const errorMsg = rowErrors[0] + (rowErrors.length > 1 ? ` (+${rowErrors.length - 1} more issues)` : "");
+                      setCsvError("CSV validation failed — " + errorMsg); 
+                      setCsvProcessing(false); 
+                      // Log all errors to console for debugging
+                      console.error("CSV validation errors:", rowErrors);
+                      return; 
+                    }
+                    if (items.length === 0) { 
+                      setCsvError("Incomplete CSV — no valid rows found."); 
+                      setCsvProcessing(false); 
+                      return; 
+                    }
+                    
+                    // Log the payload before sending
+                    console.log("CSV: Sending " + items.length + " items to server:", items);
+                    
                     const res = await insertCataloguesBulk(items);
-                    if (res == null) { setCsvError("CSV upload failed — server rejected the data. Check console."); setCsvProcessing(false); return; }
+                    if (res == null) { 
+                      setCsvError("CSV upload failed — server rejected the data. Check browser console for details."); 
+                      setCsvProcessing(false); 
+                      return; 
+                    }
                     setCsvSuccess(true);
+                    setTimeout(() => setCsvSuccess(false), 3000);
                   } catch (err) { console.error("CSV parse/upload error:", err); setCsvError("Failed to process CSV file."); } finally { setCsvProcessing(false); e.target.value = ""; }
                 }}
               />
@@ -671,7 +703,7 @@ export default function AddItemPage() {
               variant="contained"
               onClick={() => {
                 const header = "ProductServerId,SerialNumber,Name,CategoryId,SubCategoryId,LockerId";
-                const sample = "42,SN-001,Daimler Wrench 200w,3,7,1";
+                const sample = "1,SN-001,Digital Vernier Caliper,2,5,1";
                 const csv = `${header}\n${sample}\n`;
                 const blob = new Blob([csv], { type: "text/csv" });
                 const url = URL.createObjectURL(blob);

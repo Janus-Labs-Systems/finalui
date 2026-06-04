@@ -412,7 +412,7 @@ const DynamicTables = ({
       lockers[0]?.location ??
       lockers[0]?.LockerLocation ??
       lockers[0]?.site ??
-      "Unknown";
+      "INOXPA, Pune";
 
     return {
       totalLockers,

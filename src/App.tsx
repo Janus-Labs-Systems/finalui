@@ -433,7 +433,7 @@ function App() {
           // Count unique locations from live data
           const locations = new Set<string>();
           lockers.forEach((locker: any) => {
-            const loc = locker.location || locker.Location || "Unknown";
+            const loc = locker.location || locker.Location || "INOXPA, Pune";
             locations.add(loc);
           });
           console.log("Total locations:", locations.size);
@@ -718,7 +718,7 @@ function App() {
                         <Typography sx={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: 1, px: 0.5, mt: 1, mb: 0.5 }}>LOCKERS</Typography>
                         {matchedLockers.map((l, i) => {
                           const mid = l.mlockerId ?? "";
-                          const loc = l.location ?? l.Location ?? "";
+                          const loc = l.location ?? l.Location ?? "INOXPA, Pune";
                           const subCount = searchLockerData.filter((x: any) => String(x.mlockerId ?? "") === String(mid)).length;
                           return (
                             <Box key={i} onClick={() => { if (isMaster) { setMasterModeActive(false); window.history.pushState({}, '', '/'); } setLockerSearchTerm(`MADV${mid}`); setShowLockersPage(true); setShowInventoryPage(false); setShowApprovalPage(false); setShowAddItemPage(false); setShowAddUserPage(false); setCurrentPage("lockers"); closeSearchPopper(); }}

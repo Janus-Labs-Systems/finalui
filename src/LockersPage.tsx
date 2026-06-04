@@ -437,7 +437,7 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
       else sizeCounts.Other++;
     }
 
-    const loc = "Unknown";
+    const loc = "INOXPA, Pune";
 
     return {
       totalLockers,
