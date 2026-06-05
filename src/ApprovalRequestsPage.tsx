@@ -698,35 +698,17 @@ function ApprovalRequestsPage({ prefetchedData, initialFilter }: ApprovalRequest
                     <TableCell sx={{ padding: largeCellPadding }}>
                       {(() => {
                         const s = (req.status ?? "").toString().toLowerCase();
-                        if (s.startsWith("approved"))
-                          return (
-                            <Chip
-                              label={req.status}
-                              color="success"
-                              sx={{ fontWeight: 700 }}
-                            />
-                          );
-                        if (req.approved === false || s.includes("declined"))
-                          return (
-                            <Chip
-                              label={req.status}
-                              color="error"
-                              sx={{ fontWeight: 700 }}
-                            />
-                          );
-                        if (s === "pending")
-                          return (
-                            <Chip
-                              label={req.status}
-                              color="warning"
-                              sx={{ fontWeight: 700 }}
-                            />
-                          );
+                        let bg = "#6b7280"; let color = "#fff";
+                        if (s === "pending")                        { bg = "#f59e0b"; color = "#fff"; }
+                        else if (s.startsWith("approved"))          { bg = "#22c55e"; color = "#fff"; }
+                        else if (s.includes("declined"))            { bg = "#ef4444"; color = "#fff"; }
+                        else if (s.includes("returninit") || s.includes("return init")) { bg = "#6366f1"; color = "#fff"; }
+                        else if (s.includes("returned"))            { bg = "#14b8a6"; color = "#fff"; }
                         return (
                           <Chip
                             label={req.status}
-                            variant="outlined"
-                            sx={{ fontWeight: 600 }}
+                            className="status-chip"
+                            style={{ backgroundColor: bg, color, fontWeight: 700, border: "none" }}
                           />
                         );
                       })()}
@@ -871,7 +853,7 @@ function ApprovalRequestsPage({ prefetchedData, initialFilter }: ApprovalRequest
             onClick={() => applyDecision(true)}
             color="success"
             variant="contained"
-            sx={{ fontWeight: 700, px: 3, borderRadius: 2 }}
+            sx={{ px: 3, borderRadius: 2 }}
           >
             Accept
           </Button>
@@ -879,7 +861,7 @@ function ApprovalRequestsPage({ prefetchedData, initialFilter }: ApprovalRequest
             onClick={() => applyDecision(false)}
             color="error"
             variant="contained"
-            sx={{ fontWeight: 700, px: 3, borderRadius: 2 }}
+            sx={{ px: 3, borderRadius: 2 }}
           >
             Decline
           </Button>

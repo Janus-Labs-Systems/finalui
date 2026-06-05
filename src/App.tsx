@@ -297,6 +297,7 @@ function App() {
   const addUserBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const editReturnBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const searchBtnRef = React.useRef<HTMLDivElement | null>(null);
+  const mobileSearchRef = React.useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [searchAnchor, setSearchAnchor] = useState<HTMLElement | null>(null);
   const searchOpen = Boolean(searchAnchor);
@@ -1002,6 +1003,40 @@ function App() {
           </Menu>
         </div>
       </div>
+
+      {/* Mobile search bar — sticky row below topbar, hidden on sm+ */}
+      <Box ref={mobileSearchRef} sx={{
+        display: { xs: "flex", sm: "none" },
+        position: "sticky",
+        top: 64,
+        zIndex: 1199,
+        background: "linear-gradient(90deg, #6e7785, #747a83)",
+        px: 1.5,
+        py: 0.8,
+        alignItems: "center",
+        gap: 1,
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+      }}>
+        <SearchIcon sx={{ fontSize: 18, color: "rgba(255,255,255,0.7)", flexShrink: 0 }} />
+        <InputBase
+          placeholder="Search lockers, products..."
+          value={searchQuery}
+          inputRef={searchInputRef}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            if (e.target.value) setSearchAnchor(mobileSearchRef.current ?? searchBtnRef.current);
+            else setSearchAnchor(null);
+          }}
+          onFocus={() => { if (searchQuery) setSearchAnchor(mobileSearchRef.current ?? searchBtnRef.current); }}
+          onBlur={() => { setTimeout(() => setSearchAnchor(null), 200); }}
+          sx={{ flex: 1, fontSize: 13, color: "#fff", "& input": { color: "#fff", "&::placeholder": { color: "rgba(255,255,255,0.55)" } } }}
+        />
+        {searchQuery && (
+          <IconButton size="small" onClick={() => closeSearchPopper()} sx={{ p: 0.2, color: "#fff" }}>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>×</span>
+          </IconButton>
+        )}
+      </Box>
 
       {/* Layout container with sidebar and main content */}
       <div style={{ display: "flex", minHeight: "calc(100vh - 64px)", marginTop: "64px", background: "var(--bg)" }}>

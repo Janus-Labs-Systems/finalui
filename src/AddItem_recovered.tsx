@@ -1178,7 +1178,7 @@ export default function AddItemPage() {
             <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
               <Button
                 type="button"
-                variant="outlined"
+                className="inv-btn"
                 onClick={() => window.history.back()}
                 sx={{ minHeight: 44, px: 3 }}
               >
@@ -1257,7 +1257,7 @@ export default function AddItemPage() {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowNewCategoryDialog(false)}>
+          <Button className="inv-btn" onClick={() => setShowNewCategoryDialog(false)}>
             Cancel
           </Button>
           <Button
@@ -1466,7 +1466,7 @@ export default function AddItemPage() {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowNewItemDialog(false)}>Cancel</Button>
+          <Button className="inv-btn" onClick={() => setShowNewItemDialog(false)}>Cancel</Button>
           <Button
             variant="contained"
             onClick={async () => {

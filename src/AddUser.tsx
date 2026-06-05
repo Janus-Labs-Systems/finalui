@@ -334,7 +334,7 @@ export default function AddUser({ onDone }: AddUserProps) {
                     marginTop: 1,
                   }}
                 >
-                  <Button variant="outlined" onClick={() => onDone && onDone()}>
+                  <Button className="inv-btn" onClick={() => onDone && onDone()}>
                     Cancel
                   </Button>
                   <Button type="submit" variant="contained" color="primary">

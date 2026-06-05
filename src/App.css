@@ -267,11 +267,11 @@ header, .topbar, .MuiAppBar-root, .page-header, .dashboard-header {
 
 /* Buttons and primary actions - flat accent button style */
 button, .btn, .primary-btn {
-  background: #b4d7ff !important;
-  color: #fff;
+  background: #B4D7FF !important;
+  color: #1a2744;
   border-radius: 10px;
   border: none;
-  font-weight: 700;
+  font-weight: normal;
 }
 
 /* Home page button and card effects */
@@ -908,82 +908,20 @@ html {
   box-shadow: 0 26px 60px rgba(2,6,23,0.12) !important;
 }
 
-/* Buttons: simple flat style */
-.MuiButton-root {
-  border-radius: 6px !important;
-  background: #252526 !important;
-  color: #ffffff !important;
-}
-.MuiButton-root:hover {
-  background: #252526 !important;
-}
-
-/* Styling specifically for 'Show' buttons */
-.show-btn {
-  background: #b4d7ff !important;
-  color: #1a2744 !important;
-  min-width: 96px !important;
-  text-transform: none !important;
-}
-.show-btn:hover,
-.show-btn:focus,
-.show-btn:active {
-  background: #b4d7ff !important;
-  color: #1a2744 !important;
-  transform: none !important;
-}
-.MuiButton-contained,
-.MuiButton-containedPrimary,
-.MuiButton-containedSecondary {
-  background: #b4d7ff !important;
-  color: #1a2744 !important;
-}
-.MuiButton-contained:hover,
-.MuiButton-containedPrimary:hover,
-.MuiButton-containedSecondary:hover,
-.MuiButton-contained:focus,
-.MuiButton-containedPrimary:focus,
-.MuiButton-containedSecondary:focus,
-.MuiButton-contained:active,
-.MuiButton-containedPrimary:active,
-.MuiButton-containedSecondary:active {
-  background: #b4d7ff !important;
-  color: #1a2744 !important;
-}
-
-/* Keep popup/dialog/menu buttons visually static on hover/focus/active */
-button,
-button:hover,
-button:focus,
-button:active,
+/* ── ALL BUTTONS: simple flat #B4D7FF, no hover/focus/active change ── */
 .MuiButton-root,
 .MuiButton-root:hover,
 .MuiButton-root:focus,
 .MuiButton-root:active,
-.MuiDialogActions-root .MuiButton-root,
-.MuiPopover-root .MuiButton-root,
-.MuiMenuItem-root,
-.MuiMenuItem-root:hover,
-.MuiMenuItem-root:focus,
-.MuiMenuItem-root:active {
-  transition: none !important;
-  box-shadow: none !important;
-  transform: none !important;
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Ensure contained buttons keep their flat color */
+.MuiButton-root:focus-visible,
 .MuiButton-contained,
 .MuiButton-contained:hover,
 .MuiButton-contained:focus,
-.MuiButton-contained:active {
-  background: #b4d7ff !important;
-  color: #ffffff !important;
-  border-color: #8ec5f8 !important;
-}
-
-/* Outlined / text buttons should not change color on hover */
+.MuiButton-contained:active,
+.MuiButton-containedPrimary,
+.MuiButton-containedPrimary:hover,
+.MuiButton-containedSecondary,
+.MuiButton-containedSecondary:hover,
 .MuiButton-outlined,
 .MuiButton-outlined:hover,
 .MuiButton-outlined:focus,
@@ -991,46 +929,55 @@ button:active,
 .MuiButton-text,
 .MuiButton-text:hover,
 .MuiButton-text:focus,
-.MuiButton-text:active {
-  background: transparent !important;
-  color: inherit !important;
-  border-color: var(--border) !important;
-}
-
-/* Dialog-specific controls (native & MUI) */
-.MuiDialogActions-root button,
-.MuiDialogActions-root .MuiButton-root {
-  background: transparent !important;
-  color: inherit !important;
-  border-color: var(--border) !important;
-}
-
-/* Add-item form back button (explicit) keep static */
+.MuiButton-text:active,
+.MuiDialogActions-root .MuiButton-root,
+.MuiDialogActions-root .MuiButton-root:hover,
 .page-shell .MuiButton-root,
 .page-shell .MuiButton-root:hover,
-.page-shell .MuiButton-root:focus,
-.page-shell .MuiButton-root:active {
-  background: transparent !important;
-  color: inherit !important;
-  border-color: var(--border) !important;
-}
-.MuiButton-outlined,
-.MuiButton-text {
-  background: transparent !important;
-  color: inherit !important;
-  border-color: var(--border) !important;
-}
-.MuiButton-outlined:hover,
-.MuiButton-text:hover,
-.MuiButton-outlined:focus,
-.MuiButton-text:focus,
-.MuiButton-outlined:active,
-.MuiButton-text:active {
-  background: transparent !important;
-  color: inherit !important;
-  border-color: var(--border) !important;
-  transform: none !important;
+.show-btn,
+.show-btn:hover,
+.show-btn:focus,
+.show-btn:active {
+  background: #B4D7FF !important;
+  background-color: #B4D7FF !important;
+  color: #1a2744 !important;
   box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  font-weight: normal !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Exceptions: icon buttons and list-item buttons stay transparent */
+.MuiIconButton-root,
+.MuiIconButton-root:hover,
+.MuiIconButton-root:focus,
+.MuiIconButton-root:active,
+.MuiListItemButton-root,
+.MuiListItemButton-root:hover,
+.MuiListItemButton-root:focus {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* MenuItem stays transparent */
+.MuiMenuItem-root,
+.MuiMenuItem-root:hover,
+.MuiMenuItem-root:focus,
+.MuiMenuItem-root:active {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+.MuiMenuItem-root:hover {
+  background-color: rgba(167,139,250,0.08) !important;
 }
 
 /* Inputs: clearer focus state without changing colors */
@@ -1914,16 +1861,16 @@ footer { background: var(--footer-bg, #131820) !important; color: var(--footer-t
 
 /* Approve button - primary filled style */
 .dt-searchbar-x .MuiButton-contained {
-  background: #b4d7ff !important;
-  border-color: #8ec5f8 !important;
-  color: #ffffff !important;
-  font-weight: 700 !important;
+  background: #B4D7FF !important;
+  border-color: transparent !important;
+  color: #1a2744 !important;
+  font-weight: normal !important;
   box-shadow: none !important;
 }
 
 .dt-searchbar-x .MuiButton-contained:hover {
-  background: #8ec5f8 !important;
-  color: #ffffff !important;
+  background: #B4D7FF !important;
+  color: #1a2744 !important;
   box-shadow: none !important;
   transform: none !important;
 }
@@ -2022,7 +1969,8 @@ footer { background: var(--footer-bg, #131820) !important; color: var(--footer-t
 }
 .MuiButton-contained:hover,
 .MuiButton-containedPrimary:hover {
-  background: #8ec5f8 !important;
+  background: #B4D7FF !important;
+  color: #1a2744 !important;
 }
 
 /* Remove subtle focus/hover highlight on icon buttons in TopBar */
@@ -2683,8 +2631,8 @@ body.light-mode .MuiDialog-paper input[type="datetime-local"] { background: #fff
 /* Dividers */
 body.light-mode .MuiDivider-root { border-color: rgba(0,0,0,0.1) !important; }
 
-/* Chips */
-body.light-mode .MuiChip-root { color: #111827 !important; }
+/* Chips — exclude status chips which have their own colors */
+body.light-mode .MuiChip-root:not(.status-chip) { color: #111827 !important; }
 
 /* Footer — light mode (excludes login-page-footer which stays dark) */
 body.light-mode footer:not(.login-page-footer) {
@@ -2753,19 +2701,29 @@ body.light-mode .page-shell .content-wrap {
   color: #111827 !important;
 }
 
-/* Buttons — light mode */
-body.light-mode button,
-body.light-mode .btn,
-body.light-mode .primary-btn,
-body.light-mode .MuiButton-root {
-  background: #0d0d0e !important;
-  background-color: #0c0c0c !important;
-  color: #ffffff !important;
-}
+/* Buttons — light mode: same #B4D7FF, no hover change */
+body.light-mode .MuiButton-root,
 body.light-mode .MuiButton-root:hover,
-body.light-mode button:hover {
-  background: #0d0d0e !important;
-  background-color: #0c0c0c !important;
+body.light-mode .MuiButton-root:focus,
+body.light-mode .MuiButton-root:active,
+body.light-mode button.btn,
+body.light-mode .primary-btn {
+  background: #B4D7FF !important;
+  background-color: #B4D7FF !important;
+  color: #1a2744 !important;
+  box-shadow: none !important;
+}
+
+/* Sidebar nav + icon buttons stay transparent in light mode */
+body.light-mode .MuiListItemButton-root,
+body.light-mode .MuiIconButton-root,
+body.light-mode .MuiIconButton-root:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiListItemButton-root:hover {
+  background-color: rgba(124, 58, 237, 0.08) !important;
 }
 
 /* Keep Show + See more buttons using same blue in light mode */
@@ -2817,6 +2775,120 @@ body.light-mode .topbar *,
 body.light-mode .MuiAppBar-root *,
 body.light-mode .MuiToolbar-root * {
   color: #ffffff !important;
+}
+
+/* Sidebar desktop box — light mode */
+body.light-mode .MuiDrawer-paper,
+body.light-mode .MuiDrawer-paper * {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+body.light-mode .MuiDrawer-paper .MuiListItemIcon-root {
+  color: #374151 !important;
+}
+/* Inventory page buttons — always #B4D7FF, no hover/focus change */
+.inv-btn.MuiButtonBase-root,
+.inv-btn.MuiButton-root,
+button.inv-btn {
+  background: #B4D7FF !important;
+  background-color: #B4D7FF !important;
+  color: #1a2744 !important;
+  box-shadow: none !important;
+  font-weight: normal !important;
+  text-transform: none !important;
+  transition: none !important;
+}
+.inv-btn.MuiButtonBase-root:hover,
+.inv-btn.MuiButton-root:hover,
+.inv-btn.MuiButtonBase-root:focus,
+.inv-btn.MuiButton-root:focus,
+.inv-btn.MuiButtonBase-root:active,
+.inv-btn.MuiButton-root:active,
+button.inv-btn:hover,
+button.inv-btn:focus,
+button.inv-btn:active {
+  background: #B4D7FF !important;
+  background-color: #B4D7FF !important;
+  color: #1a2744 !important;
+  box-shadow: none !important;
+}
+
+/* Active sidebar item highlight */
+body.light-mode .MuiListItemButton-root[class*="Mui-selected"],
+body.light-mode .MuiListItemButton-root[style*="rgba(167,139,250"] {
+  background-color: rgba(124, 58, 237, 0.1) !important;
+  color: #7c3aed !important;
+}
+
+/* Metric values readable on white cards */
+body.light-mode .dt-master-metrics-row .metric .metric-value,
+body.light-mode .metric .metric-value {
+  color: #111827 !important;
+}
+body.light-mode .dt-master-metrics-row .metric .metric-label,
+body.light-mode .metric .metric-label {
+  color: #e53935 !important;
+}
+
+/* Card border title badge */
+body.light-mode .card-border-title {
+  background: #ffffff !important;
+  color: #7c3aed !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Locker cards and content containers */
+body.light-mode .dt-master-card-x,
+body.light-mode .MuiCardContent-root {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+body.light-mode .dt-master-card-content-x {
+  border-color: rgba(0,0,0,0.1) !important;
+  background: #ffffff !important;
+}
+
+/* Ensure MuiChip readable in light mode — status chips keep their own colors */
+body.light-mode .MuiChip-root:not(.status-chip) {
+  background-color: #f0f2f5 !important;
+  color: #374151 !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+
+/* Pagination in light mode */
+body.light-mode .MuiPaginationItem-root {
+  color: #374151 !important;
+  background-color: #ffffff !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+body.light-mode .MuiPaginationItem-root.Mui-selected {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+/* Avatar readable in light mode */
+body.light-mode .MuiAvatar-root {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+/* Badge */
+body.light-mode .MuiBadge-badge {
+  background-color: #ff5252 !important;
+  color: #ffffff !important;
+}
+
+/* Mobile: improve spacing and font size */
+@media (max-width: 600px) {
+  body.light-mode .overview-card {
+    padding: 14px 16px !important;
+  }
+  body.light-mode .overview-value {
+    font-size: 1.6rem !important;
+  }
+  body.light-mode .dt-master-card-x {
+    width: calc(100% - 20px) !important;
+  }
 }
 
 /* ===== END LIGHT MODE ===== */

@@ -421,41 +421,13 @@ export default function InventoryPage({ prefetchedData, initialSearch }: Invento
                               }}
                             />
                             <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                disabled={savingEdit}
-                                onClick={() => handleSave(row)}
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="small"
-                                disabled={savingEdit}
-                                onClick={() => setEditingKey(null)}
-                              >
-                                Cancel
-                              </Button>
+                              <Button size="small" disabled={savingEdit} onClick={() => handleSave(row)} className="inv-btn">Save</Button>
+                              <Button size="small" disabled={savingEdit} onClick={() => setEditingKey(null)} className="inv-btn">Cancel</Button>
                             </div>
                           </div>
                         ) : (
                           // ── View mode — Edit button ─────────────────────────────
-                          <Button
-                            size="small"
-                            startIcon={<BuildIcon sx={{ fontSize: 14 }} />}
-                            onClick={() => openEdit(row)}
-                            sx={{
-                              color: "var(--accent)",
-                              border: "1px solid rgba(167,139,250,0.3)",
-                              borderRadius: 1,
-                              textTransform: "none",
-                              fontSize: 12,
-                              fontWeight: 600,
-                              "&:hover": { backgroundColor: "rgba(167,139,250,0.1)", borderColor: "var(--accent)" },
-                            }}
-                          >
-                            Edit Dates
-                          </Button>
+                          <Button size="small" startIcon={<BuildIcon sx={{ fontSize: 14 }} />} onClick={() => openEdit(row)} className="inv-btn">Edit Dates</Button>
                         )}
                       </TableCell>}
                       {colVisibility.minReturnTime && (
@@ -466,22 +438,7 @@ export default function InventoryPage({ prefetchedData, initialSearch }: Invento
                                 {minReturnValues[key]}
                               </Typography>
                             )}
-                            <Button
-                              size="small"
-                              onClick={() => {
-                                setMinReturnDialog({ key, productId: row.productId ?? "", productName: row.productName ?? "" });
-                                setMinReturnInput(minReturnValues[key] ?? "");
-                                setMinReturnError(null);
-                              }}
-                              sx={{
-                                textTransform: "none",
-                                fontSize: 12,
-                                fontWeight: 600,
-                                px: 1.5,
-                              }}
-                            >
-                              Edit
-                            </Button>
+                            <Button size="small" className="inv-btn" onClick={() => { setMinReturnDialog({ key, productId: row.productId ?? "", productName: row.productName ?? "" }); setMinReturnInput(minReturnValues[key] ?? ""); setMinReturnError(null); }}>Edit</Button>
                           </div>
                         </TableCell>
                       )}
@@ -533,9 +490,8 @@ export default function InventoryPage({ prefetchedData, initialSearch }: Invento
           />
         </DialogContent>
         <DialogActions sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 }, gap: 1 }}>
-          <Button onClick={() => setMinReturnDialog(null)}>Cancel</Button>
-          <Button
-            variant="contained"
+          <Button className="inv-btn" onClick={() => setMinReturnDialog(null)}>Cancel</Button>
+          <Button className="inv-btn"
             onClick={() => {
               const v = minReturnInput.trim().toLowerCase();
               if (!/^\d+\s*(d|h)?$/.test(v)) {
