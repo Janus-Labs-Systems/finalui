@@ -1,0 +1,43 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/*.css", "/*.js", "/*.json", "/*.svg", "/*.png", "/*.jpg", "/*.gif", "/*.ico"]
+  },
+  "routes": [
+    {
+      "route": "/master/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/dashboard",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/lockers",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/inventory",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/approvals",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/additem",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/adduser",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/profile",
+      "rewrite": "/index.html"
+    }
+  ],
+  "mimeTypes": {
+    ".json": "text/json"
+  }
+}
