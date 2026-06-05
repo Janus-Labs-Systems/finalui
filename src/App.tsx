@@ -644,7 +644,9 @@ function App() {
               setCurrentPage("dashboard");
               window.history.pushState({}, "", "/dashboard");
             }}
-            style={{ height: 54, width: "auto", display: "inherit", objectFit: "fill", cursor: "pointer", transition: "transform 0.2s ease, filter 0.2s ease" }}
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
+            style={{ height: 54, width: "auto", display: "inherit", objectFit: "fill", cursor: "pointer", transition: "transform 0.2s ease, filter 0.2s ease", userSelect: "none" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.08)"; (e.currentTarget as HTMLImageElement).style.filter = "brightness(1.2)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; (e.currentTarget as HTMLImageElement).style.filter = "brightness(1)"; }}
           />
