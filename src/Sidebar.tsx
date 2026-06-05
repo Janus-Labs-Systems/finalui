@@ -25,7 +25,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import CloseIcon from "@mui/icons-material/Close";
 
 interface SidebarProps {
-  userName?: string;
+  userName?: string | null;
   onNavigate?: (page: string) => void;
   onLogout?: () => void;
   currentPage?: string;
@@ -43,7 +43,11 @@ const TRANSITION = "background-color 0.18s, color 0.18s";
 const TEXT_TRANSITION = "opacity 0.18s ease, max-width 0.2s ease";
 const NO_SHADOW = {
   boxShadow: "none",
-  "&.Mui-focusVisible": { boxShadow: "none", outline: "none", backgroundColor: "transparent" },
+  "&.Mui-focusVisible": {
+    boxShadow: "none",
+    outline: "none",
+    backgroundColor: "transparent",
+  },
   "&:active": { boxShadow: "none" },
 } as const;
 
@@ -53,10 +57,14 @@ const labelSx = (collapsed: boolean) => ({
   overflow: "hidden",
   whiteSpace: "nowrap" as const,
   transition: TEXT_TRANSITION,
-  pointerEvents: collapsed ? "none" as const : "auto" as const,
+  pointerEvents: collapsed ? ("none" as const) : ("auto" as const),
 });
 
-const SidebarSettings: React.FC<SidebarSettingsProps> = ({ collapsed, onNavigate, onClose }) => {
+const SidebarSettings: React.FC<SidebarSettingsProps> = ({
+  collapsed,
+  onNavigate,
+  onClose,
+}) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -74,15 +82,27 @@ const SidebarSettings: React.FC<SidebarSettingsProps> = ({ collapsed, onNavigate
             transition: TRANSITION,
             borderLeft: "3px solid transparent",
             justifyContent: collapsed ? "center" : "flex-start",
-            "&:hover": { backgroundColor: "rgba(167,139,250,0.1)", color: "var(--accent)" },
+            "&:hover": {
+              backgroundColor: "rgba(167,139,250,0.1)",
+              color: "var(--accent)",
+            },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 40, color: "inherit", justifyContent: "center" }}>
+          <ListItemIcon
+            sx={{ minWidth: 40, color: "inherit", justifyContent: "center" }}
+          >
             <SettingsIcon sx={{ fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText
             primary={open ? "Settings ▾" : "Settings"}
-            primaryTypographyProps={{ sx: { fontSize: 13, fontWeight: 700, color: "inherit", ...labelSx(collapsed) } }}
+            primaryTypographyProps={{
+              sx: {
+                fontSize: 13,
+                fontWeight: 700,
+                color: "inherit",
+                ...labelSx(collapsed),
+              },
+            }}
           />
         </ListItemButton>
       </ListItem>
@@ -90,18 +110,52 @@ const SidebarSettings: React.FC<SidebarSettingsProps> = ({ collapsed, onNavigate
       {open && !collapsed && (
         <List sx={{ pl: 3 }}>
           {[
-            { label: "Add Item", icon: <AddBoxIcon sx={{ fontSize: 18 }} />, page: "additem" },
-            { label: "Add User", icon: <PersonAddIcon sx={{ fontSize: 18 }} />, page: "adduser" },
-            { label: "Edit Min Pickup Time", icon: <AccessTimeIcon sx={{ fontSize: 18 }} />, page: "editreturn" },
+            {
+              label: "Add Item",
+              icon: <AddBoxIcon sx={{ fontSize: 18 }} />,
+              page: "additem",
+            },
+            {
+              label: "Add User",
+              icon: <PersonAddIcon sx={{ fontSize: 18 }} />,
+              page: "adduser",
+            },
+            {
+              label: "Edit Min Pickup Time",
+              icon: <AccessTimeIcon sx={{ fontSize: 18 }} />,
+              page: "editreturn",
+            },
           ].map((sub) => (
             <ListItem key={sub.page} disablePadding>
               <ListItemButton
                 disableRipple
-                onClick={() => { onNavigate?.(sub.page); if (typeof window !== "undefined" && window.innerWidth < 960) onClose?.(); }}
-                sx={{ ...NO_SHADOW, borderRadius: 1, py: "8px", px: "9px", color: "var(--text)", transition: TRANSITION, "&:hover": { backgroundColor: "rgba(167,139,250,0.1)", color: "var(--accent)" } }}
+                onClick={() => {
+                  onNavigate?.(sub.page);
+                  if (typeof window !== "undefined" && window.innerWidth < 960)
+                    onClose?.();
+                }}
+                sx={{
+                  ...NO_SHADOW,
+                  borderRadius: 1,
+                  py: "8px",
+                  px: "9px",
+                  color: "var(--text)",
+                  transition: TRANSITION,
+                  "&:hover": {
+                    backgroundColor: "rgba(167,139,250,0.1)",
+                    color: "var(--accent)",
+                  },
+                }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>{sub.icon}</ListItemIcon>
-                <ListItemText primary={sub.label} primaryTypographyProps={{ sx: { fontSize: 13, fontWeight: 700 } }} />
+                <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                  {sub.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={sub.label}
+                  primaryTypographyProps={{
+                    sx: { fontSize: 13, fontWeight: 700 },
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           ))}
@@ -131,25 +185,70 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // isCollapsed parameter lets the mobile Drawer always render fully expanded
   const buildContent = (isCollapsed: boolean) => (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, backgroundColor: "var(--card-bg)", color: "var(--text)" }}>
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        backgroundColor: "var(--card-bg)",
+        color: "var(--text)",
+      }}
+    >
       {/* User Profile Section */}
-      <Box sx={{ pt: 3, pb: 2, px: 2, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 1.5, overflow: "hidden", position: "sticky", top: 0, zIndex: 2, backgroundColor: "var(--card-bg)", flexShrink: 0 }}>
+      <Box
+        sx={{
+          pt: 3,
+          pb: 2,
+          px: 2,
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          overflow: "hidden",
+          position: "sticky",
+          top: 0,
+          zIndex: 2,
+          backgroundColor: "var(--card-bg)",
+          flexShrink: 0,
+        }}
+      >
         <Avatar
           sx={{
             width: 40,
             height: 40,
             flexShrink: 0,
-            background: "linear-gradient(135deg, var(--accent), var(--accent-2))",
+            background:
+              "linear-gradient(135deg, var(--accent), var(--accent-2))",
           }}
         >
           {(userName || "A").charAt(0).toUpperCase()}
         </Avatar>
-        <Box sx={{ ...labelSx(isCollapsed), display: "flex", flexDirection: "column" }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap" }}>
+        <Box
+          sx={{
+            ...labelSx(isCollapsed),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--text)",
+              whiteSpace: "nowrap",
+            }}
+          >
             {userName}
           </Typography>
-          <Typography sx={{ fontSize: 11, color: "var(--muted)", mt: 0.25, whiteSpace: "nowrap" }}>
+          <Typography
+            sx={{
+              fontSize: 11,
+              color: "var(--muted)",
+              mt: 0.25,
+              whiteSpace: "nowrap",
+            }}
+          >
             Administrator
           </Typography>
         </Box>
@@ -157,14 +256,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         <IconButton
           onClick={() => onClose?.()}
           size="small"
-          sx={{ display: { xs: "flex", md: "none" }, ml: "auto", color: "var(--muted)" }}
+          sx={{
+            display: { xs: "flex", md: "none" },
+            ml: "auto",
+            color: "var(--muted)",
+          }}
         >
           <CloseIcon />
         </IconButton>
       </Box>
 
       {/* Navigation Items */}
-      <List sx={{ flex: 1, padding: "12px 8px", overflow: "hidden", flexShrink: 1 }}>
+      <List
+        sx={{ flex: 1, padding: "12px 8px", overflow: "hidden", flexShrink: 1 }}
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -174,27 +279,48 @@ const Sidebar: React.FC<SidebarProps> = ({
                 disableRipple
                 onClick={() => {
                   onNavigate?.(item.id);
-                  if (typeof window !== "undefined" && window.innerWidth < 960) onClose?.();
+                  if (typeof window !== "undefined" && window.innerWidth < 960)
+                    onClose?.();
                 }}
                 sx={{
                   ...NO_SHADOW,
                   borderRadius: 1,
                   py: "10px",
                   px: "9px",
-                  backgroundColor: isActive ? "rgba(167,139,250,0.15)" : "transparent",
+                  backgroundColor: isActive
+                    ? "rgba(167,139,250,0.15)"
+                    : "transparent",
                   color: isActive ? "var(--accent)" : "var(--text)",
                   transition: TRANSITION,
-                  borderLeft: isActive ? "3px solid var(--accent)" : "3px solid transparent",
+                  borderLeft: isActive
+                    ? "3px solid var(--accent)"
+                    : "3px solid transparent",
                   justifyContent: isCollapsed ? "center" : "flex-start",
-                  "&:hover": { backgroundColor: "rgba(167,139,250,0.1)", color: "var(--accent)" },
+                  "&:hover": {
+                    backgroundColor: "rgba(167,139,250,0.1)",
+                    color: "var(--accent)",
+                  },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: "inherit", justifyContent: "center" }}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                    justifyContent: "center",
+                  }}
+                >
                   <Icon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}
-                  primaryTypographyProps={{ sx: { fontSize: 13, fontWeight: 700, color: "inherit", ...labelSx(isCollapsed) } }}
+                  primaryTypographyProps={{
+                    sx: {
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "inherit",
+                      ...labelSx(isCollapsed),
+                    },
+                  }}
                 />
               </ListItemButton>
             </ListItem>
@@ -206,12 +332,20 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Settings + Logout */}
       <Box sx={{ padding: "12px 8px", overflow: "hidden" }}>
-        <SidebarSettings collapsed={isCollapsed} onNavigate={onNavigate} onClose={onClose} />
+        <SidebarSettings
+          collapsed={isCollapsed}
+          onNavigate={onNavigate}
+          onClose={onClose}
+        />
 
         <ListItem disablePadding>
           <ListItemButton
             disableRipple
-            onClick={() => { onLogout?.(); if (typeof window !== "undefined" && window.innerWidth < 960) onClose?.(); }}
+            onClick={() => {
+              onLogout?.();
+              if (typeof window !== "undefined" && window.innerWidth < 960)
+                onClose?.();
+            }}
             sx={{
               ...NO_SHADOW,
               borderRadius: 1,
@@ -220,15 +354,27 @@ const Sidebar: React.FC<SidebarProps> = ({
               color: "var(--muted)",
               transition: TRANSITION,
               justifyContent: isCollapsed ? "center" : "flex-start",
-              "&:hover": { backgroundColor: "rgba(255,107,107,0.1)", color: "#ff6b6b" },
+              "&:hover": {
+                backgroundColor: "rgba(255,107,107,0.1)",
+                color: "#ff6b6b",
+              },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: "inherit", justifyContent: "center" }}>
+            <ListItemIcon
+              sx={{ minWidth: 40, color: "inherit", justifyContent: "center" }}
+            >
               <LogoutIcon sx={{ fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText
               primary="Logout"
-              primaryTypographyProps={{ sx: { fontSize: 13, fontWeight: 700, color: "inherit", ...labelSx(isCollapsed) } }}
+              primaryTypographyProps={{
+                sx: {
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "inherit",
+                  ...labelSx(isCollapsed),
+                },
+              }}
             />
           </ListItemButton>
         </ListItem>

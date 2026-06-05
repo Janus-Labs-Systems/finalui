@@ -1,6 +1,14 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://dexbox-api-e6bzexe9ezdjgfh9.centralindia-01.azurewebsites.net/api";
+const API_BASE_URL =
+  "https://dexbox-api-e6bzexe9ezdjgfh9.centralindia-01.azurewebsites.net/api";
+
+// Notification type
+interface Notification {
+  locker_Id: number;
+  impact: string;
+  notifications: string;
+}
 
 // Interface for inventory data
 export interface InventoryItem {
@@ -127,7 +135,7 @@ export async function postLockerOccupy(data: any): Promise<number | null> {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     // Expect the API to return a numeric result in the body or as JSON { result: n }
     if (resp && resp.data) {
@@ -156,7 +164,7 @@ export async function clearLockerOccupy(lockerId: number): Promise<boolean> {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     return resp.status >= 200 && resp.status < 300;
   } catch (err) {
@@ -182,7 +190,7 @@ export async function updateCatalogueCaliDates(data: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     if (resp && resp.data) {
       // backend returns an int result or { Result: int }
@@ -216,7 +224,7 @@ export async function insertCategoryAndSubCategory(data: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     if (resp && resp.data) {
       if (typeof resp.data === "number") return resp.data;
@@ -288,7 +296,7 @@ export async function insertProductAndUpdateCatalogue(data: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     if (resp && resp.data) {
       if (typeof resp.data === "number") return resp.data;
@@ -319,13 +327,15 @@ export function useLiveLoadData() {
         // Normalize to array — API may wrap the list in a property
         const arr = Array.isArray(result)
           ? result
-          : result?.LockerDetails ??
+          : (result?.LockerDetails ??
             result?.lockerdetails ??
             result?.lockerDetails ??
             result?.Lockers ??
             result?.lockers ??
             result?.data ??
-            (result && typeof result === "object" ? Object.values(result) : []);
+            (result && typeof result === "object"
+              ? Object.values(result)
+              : []));
         if (isMounted) setData(Array.isArray(arr) ? arr : []);
       } catch {
         // Optionally handle error
@@ -404,7 +414,7 @@ export async function fetchAlertsFromApi(): Promise<AlertRepo[]> {
         AlertId: safeNumber(it.AlertId ?? it.alertId ?? it.AlertID),
         qtId: safeNumber(it.qtId ?? it.QtId ?? it.qtID),
         AlertDescription: safeString(
-          it.AlertDescription ?? it.alertDescription ?? it.Description
+          it.AlertDescription ?? it.alertDescription ?? it.Description,
         ),
         AppUserID: safeString(it.AppUserID ?? it.appUserID),
         MUserID: safeString(it.MUserID ?? it.mUserID),
@@ -429,7 +439,7 @@ export async function fetchCatalogue(): Promise<any[]> {
     // Use the manager-specific endpoint name. It returns the same shape as GetCatalogue.
     console.log(
       "fetchCatalogue: calling",
-      `${API_BASE_URL}/GetCatalogueManager`
+      `${API_BASE_URL}/GetCatalogueManager`,
     );
     const resp = await axios.get(`${API_BASE_URL}/GetCatalogueManager`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -438,7 +448,7 @@ export async function fetchCatalogue(): Promise<any[]> {
     if (resp && resp.data) return Array.isArray(resp.data) ? resp.data : [];
     // fallback to fetch in case axios returned unexpected shape
     console.warn(
-      "fetchCatalogue: axios returned no data, attempting fetch fallback"
+      "fetchCatalogue: axios returned no data, attempting fetch fallback",
     );
     const fallback = await fetch(`${API_BASE_URL}/GetCatalogueManager`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -447,7 +457,7 @@ export async function fetchCatalogue(): Promise<any[]> {
       console.error(
         "fetchCatalogue fallback failed",
         fallback.status,
-        fallback.statusText
+        fallback.statusText,
       );
       return [];
     }
@@ -471,7 +481,7 @@ export async function fetchCategoriesAndSubCategories(): Promise<{
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         validateStatus: () => true,
-      }
+      },
     );
     if (resp && resp.data) {
       // Try to normalize several possible shapes
@@ -650,7 +660,7 @@ export async function fetchSubCategoriesWithIds(): Promise<
 
 // Insert multiple catalogue items in bulk. Matches backend method InsertCataloguesBulk
 export async function insertCataloguesBulk(
-  items: Array<any>
+  items: Array<any>,
 ): Promise<number[] | null> {
   const token = getSessionToken();
   try {
@@ -662,7 +672,12 @@ export async function insertCataloguesBulk(
 
       // Send ProductServerId only — that is the field the backend expects
       const productServerId =
-        item.ProductServerId ?? item.productServerId ?? item.qtId ?? item.ProductId ?? item.productId ?? null;
+        item.ProductServerId ??
+        item.productServerId ??
+        item.qtId ??
+        item.ProductId ??
+        item.productId ??
+        null;
       if (productServerId != null) normalized.ProductServerId = productServerId;
 
       // SerialNumber
@@ -670,15 +685,18 @@ export async function insertCataloguesBulk(
       if (serialNumber != null) normalized.SerialNumber = serialNumber;
 
       // Name/Product
-      const name = item.Name ?? item.name ?? item.Product ?? item.product ?? null;
+      const name =
+        item.Name ?? item.name ?? item.Product ?? item.product ?? null;
       if (name != null) normalized.Name = name;
 
       // CategoryId
-      const categoryId = item.CategoryId ?? item.categoryId ?? item.Category_Id ?? null;
+      const categoryId =
+        item.CategoryId ?? item.categoryId ?? item.Category_Id ?? null;
       if (categoryId != null) normalized.CategoryId = categoryId;
 
       // SubCategoryId
-      const subCategoryId = item.SubCategoryId ?? item.subCategoryId ?? item.SubCategory_Id ?? null;
+      const subCategoryId =
+        item.SubCategoryId ?? item.subCategoryId ?? item.SubCategory_Id ?? null;
       if (subCategoryId != null) normalized.SubCategoryId = subCategoryId;
 
       // LockerId
@@ -697,12 +715,12 @@ export async function insertCataloguesBulk(
       // eslint-disable-next-line no-console
       console.debug(
         "insertCataloguesBulk - original items:",
-        JSON.stringify(items)
+        JSON.stringify(items),
       );
       // eslint-disable-next-line no-console
       console.debug(
         "insertCataloguesBulk - transformed items:",
-        JSON.stringify(transformedItems)
+        JSON.stringify(transformedItems),
       );
     } catch {}
 
@@ -724,7 +742,7 @@ export async function insertCataloguesBulk(
       // eslint-disable-next-line no-console
       console.debug(
         "insertCataloguesBulk - fetch response status:",
-        fetchResp.status
+        fetchResp.status,
       );
       // eslint-disable-next-line no-console
       console.debug("insertCataloguesBulk - fetch response text:", text);
@@ -855,7 +873,7 @@ export async function fetchAppUsers(): Promise<any[]> {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         validateStatus: () => true,
-      }
+      },
     );
     console.debug("fetchAppUsers: POST fallback response", {
       url: postUrl,
@@ -876,7 +894,7 @@ export async function fetchAppUsers(): Promise<any[]> {
   }
 
   console.error(
-    "fetchAppUsers: no data returned from GetAppUserForManager or fallback endpoints"
+    "fetchAppUsers: no data returned from GetAppUserForManager or fallback endpoints",
   );
   return [];
 }
@@ -918,24 +936,26 @@ export async function fetchInventory(): Promise<InventoryItem[]> {
         "nextcalibration",
       ];
       const keys = which === "last" ? lastKeys : nextKeys;
-      
+
       // First try exact matches
       for (const k of keys) {
         if (item[k] !== undefined && item[k] !== null) return item[k];
       }
-      
+
       // If no exact match, try to find any key containing the keyword
       const keyword = which === "last" ? "last" : "next";
       for (const key of Object.keys(item)) {
-        if (key.toLowerCase().includes(keyword) && 
-            key.toLowerCase().includes("cali") &&
-            item[key] !== undefined && 
-            item[key] !== null &&
-            item[key] !== "") {
+        if (
+          key.toLowerCase().includes(keyword) &&
+          key.toLowerCase().includes("cali") &&
+          item[key] !== undefined &&
+          item[key] !== null &&
+          item[key] !== ""
+        ) {
           return item[key];
         }
       }
-      
+
       return null;
     };
 
@@ -950,23 +970,26 @@ export async function fetchInventory(): Promise<InventoryItem[]> {
         "sub_category",
         "subCategory",
       ];
-      
+
       // First try exact matches
       for (const k of keys) {
-        if (item[k] !== undefined && item[k] !== null && item[k] !== "") return item[k];
+        if (item[k] !== undefined && item[k] !== null && item[k] !== "")
+          return item[k];
       }
-      
+
       // If no exact match, try to find any key containing "sub"
       for (const key of Object.keys(item)) {
-        if (key.toLowerCase().includes("sub") && 
-            key.toLowerCase().includes("cat") &&
-            item[key] !== undefined && 
-            item[key] !== null &&
-            item[key] !== "") {
+        if (
+          key.toLowerCase().includes("sub") &&
+          key.toLowerCase().includes("cat") &&
+          item[key] !== undefined &&
+          item[key] !== null &&
+          item[key] !== ""
+        ) {
           return item[key];
         }
       }
-      
+
       return "N/A";
     };
 
@@ -985,9 +1008,15 @@ export async function fetchInventory(): Promise<InventoryItem[]> {
       const lastCal = getCaliValue(item, "last");
       const nextCal = getCaliValue(item, "upcoming");
       const subCat = getSubcategory(item);
-      const lockerId = normalizeLockerKey(item.LockerId || item.lockerId || item.Locker_Id || item.locker_Id || "");
+      const lockerId = normalizeLockerKey(
+        item.LockerId ||
+          item.lockerId ||
+          item.Locker_Id ||
+          item.locker_Id ||
+          "",
+      );
       const location = item.Location || item.location || "INOXPA, Pune";
-      
+
       records.push({
         productId: item.ProductId || item.productId || item.id || "N/A",
         productName: item.ProductName || item.productName || item.name || "N/A",
