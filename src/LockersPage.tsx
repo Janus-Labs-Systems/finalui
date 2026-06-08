@@ -32,10 +32,73 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import BuildCircleIcon from "@mui/icons-material/BuildCircle";
 import BuildIcon from "@mui/icons-material/Build";
-import InfoIcon from "@mui/icons-material/Info";
+
 import ErrorIcon from "@mui/icons-material/Error";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import ViewInArIcon from "@mui/icons-material/ViewInAr";
+
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import type { Locker } from "./Locker.tsx";
+
+/* ── Condition icons — document + badge design ── */
+const ConditionWarnIcon = () => (
+  <svg viewBox="0 0 110 110" width="30" height="30" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    {/* Document body */}
+    <rect x="6" y="6" width="76" height="76" rx="20" stroke="currentColor" strokeWidth="7"/>
+    {/* Text line 1 */}
+    <line x1="22" y1="36" x2="66" y2="36" stroke="currentColor" strokeWidth="7"/>
+    {/* Text line 2 (shorter) */}
+    <line x1="22" y1="55" x2="56" y2="55" stroke="currentColor" strokeWidth="7"/>
+    {/* Badge circle — bottom right, white fill so it overlaps cleanly */}
+    <circle cx="80" cy="80" r="24" fill="white" stroke="currentColor" strokeWidth="7"/>
+    {/* Exclamation stem */}
+    <line x1="80" y1="67" x2="80" y2="80" stroke="currentColor" strokeWidth="7"/>
+    {/* Exclamation dot */}
+    <circle cx="80" cy="90" r="4" fill="currentColor" stroke="none"/>
+  </svg>
+);
+
+const ConditionOkIcon = () => (
+  <svg viewBox="0 0 110 110" width="30" height="30" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    {/* Document body */}
+    <rect x="6" y="6" width="76" height="76" rx="20" stroke="currentColor" strokeWidth="7"/>
+    {/* Text line 1 */}
+    <line x1="22" y1="36" x2="66" y2="36" stroke="currentColor" strokeWidth="7"/>
+    {/* Text line 2 (shorter) */}
+    <line x1="22" y1="55" x2="56" y2="55" stroke="currentColor" strokeWidth="7"/>
+    {/* Badge circle */}
+    <circle cx="80" cy="80" r="24" fill="white" stroke="currentColor" strokeWidth="7"/>
+    {/* Checkmark */}
+    <polyline points="68,80 77,89 94,70" stroke="currentColor" strokeWidth="7" fill="none"/>
+  </svg>
+);
+
+/* ── Locker cabinet icon — same design, different render sizes ── */
+const LockerCabinetIcon = ({ size }: { size: number }) => (
+  <svg viewBox="0 0 100 100" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round">
+    {/* Outer frame */}
+    <rect x="4" y="4" width="92" height="92" rx="6"/>
+    {/* Top header bar */}
+    <rect x="4" y="4" width="92" height="15" rx="6"/>
+    {/* Vertical grid dividers */}
+    <line x1="37" y1="19" x2="37" y2="96"/>
+    <line x1="63" y1="19" x2="63" y2="96"/>
+    {/* Horizontal grid dividers */}
+    <line x1="4"  y1="46" x2="96" y2="46"/>
+    <line x1="4"  y1="71" x2="96" y2="71"/>
+    {/* Center cell door panel */}
+    <rect x="43" y="51" width="14" height="16" rx="2"/>
+    {/* Door handle */}
+    <line x1="44" y1="69" x2="52" y2="69" strokeWidth="4"/>
+  </svg>
+);
+
+const LockerMicroIcon   = () => <LockerCabinetIcon size={20} />;
+const LockerMiniIcon    = () => <LockerCabinetIcon size={24} />;
+const LockerMediumIcon  = () => <LockerCabinetIcon size={28} />;
+const LockerBigIcon     = () => <LockerCabinetIcon size={33} />;
+const LockerBiggestIcon = () => <LockerCabinetIcon size={38} />;
 
 const CARDS_PER_PAGE = 4;
 
@@ -536,12 +599,11 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
                     <div className="dt-master-title-row-x" style={{ marginBottom: 8 }}>
                       {typeof lockers[0]?.statusinfoM === "string" &&
                       lockers[0].statusinfoM.toLowerCase() === "ready" ? (
-                        <InfoIcon
+                        <CheckCircleIcon
                           className="dt-statusinfo-ready-x"
                           fontSize="medium"
                           titleAccess="Ready"
-                          color="success"
-                          sx={{ color: '#4caf50' }}
+                          sx={{ color: '#22c55e' }}
                         />
                       ) : (
                         <ErrorIcon
@@ -554,79 +616,64 @@ const LockersPage: React.FC<LockersPageProps> = ({ initialSearch }) => {
                       )}
                     </div>
 
-                    {/* Horizontal metrics row (summary only) */}
-                    <div className="dt-master-metrics-row summary-compact">
-                      <div className="metric">
-                        <div className="metric-label">Lockers</div>
-                        <div className="metric-value">{stats.totalLockers}</div>
+                    {/* Metrics grid — responsive */}
+                    <div className="dt-metrics-grid">
+                      {/* Row 1 col 1 — Lockers */}
+                      <div className="metric" style={{ display: "flex", alignItems: "center", gap: 7, gridColumn: 1, gridRow: 1 }}>
+                        <ViewModuleIcon sx={{ fontSize: 24, color: "#60a5fa", flexShrink: 0 }} />
+                        <div><div className="metric-label">Lockers</div><div className="metric-value">{stats.totalLockers}</div></div>
                       </div>
 
-                      <div className="metric">
-                        <div className="metric-label">Product Count</div>
-                        <div className="metric-value">{stats.totalProducts}</div>
+                      {/* Row 1 col 2 — Product Count */}
+                      <div className="metric" style={{ display: "flex", alignItems: "center", gap: 7, gridColumn: 2, gridRow: 1 }}>
+                        <ViewInArIcon sx={{ fontSize: 24, color: "#818cf8", flexShrink: 0 }} />
+                        <div><div className="metric-label">Product Count</div><div className="metric-value">{stats.totalProducts}</div></div>
                       </div>
 
-                      <div className="metric">
-                        <div className="metric-label">Condition</div>
-                        <div className="metric-value">
-                          {stats.conditionCount > 0 ? (
-                            <>
-                              <ErrorIcon fontSize="small" color="error" sx={{ verticalAlign: "middle", mr: 0.5 }} />
-                              {stats.conditionCount}
-                            </>
-                          ) : (
-                            <CheckCircleIcon fontSize="small" color="success" sx={{ verticalAlign: "middle" }} />
-                          )}
+                      {/* Row 2 col 1 — Location (directly under Lockers) */}
+                      <div className="metric" style={{ display: "flex", alignItems: "center", gap: 7, gridColumn: 1, gridRow: 2 }}>
+                        <LocationOnIcon sx={{ fontSize: 24, color: "#60a5fa", flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <div className="metric-label">Location</div>
+                          <div className="metric-value" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>{stats.location}</div>
                         </div>
                       </div>
 
-                      <div className="metric">
-                        <div className="metric-label">Micro</div>
-                        <div className="metric-value">{stats.sizeCounts.Micro}</div>
-                      </div>
-
-                      <div className="metric">
-                        <div className="metric-label">Mini</div>
-                        <div className="metric-value">{stats.sizeCounts.Mini}</div>
-                      </div>
-
-                      <div className="metric">
-                        <div className="metric-label">Medium</div>
-                        <div className="metric-value">{stats.sizeCounts.Medium}</div>
-                      </div>
-
-                      <div className="metric">
-                        <div className="metric-label">Big</div>
-                        <div className="metric-value">{stats.sizeCounts.Big}</div>
-                      </div>
-
-                      <div className="metric">
-                        <div className="metric-label">Biggest</div>
-                        <div className="metric-value">{stats.sizeCounts.Biggest}</div>
-                      </div>
-
-                      <div className="metric metric-location">
-                        <div className="metric-label">Location</div>
-                        <div className="metric-value" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 300 }}>
-                          {stats.location}
+                      {/* Row 1 col 3 — Condition */}
+                      <div className="metric" style={{ display: "flex", alignItems: "center", gap: 7, gridColumn: 3, gridRow: 1 }}>
+                        <span style={{ color: stats.conditionCount > 0 ? "#fb923c" : "#4ade80", flexShrink: 0, lineHeight: 0 }}>
+                          {stats.conditionCount > 0 ? <ConditionWarnIcon /> : <ConditionOkIcon />}
+                        </span>
+                        <div>
+                          <div className="metric-label">Condition</div>
+                          <div className="metric-value">
+                            {stats.conditionCount > 0 ? stats.conditionCount : <CheckCircleIcon fontSize="small" sx={{ color: "#4ade80", verticalAlign: "middle" }} />}
+                          </div>
                         </div>
                       </div>
 
-                      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+                      {/* Row 1 cols 4–8 — Locker sizes (icon above label above count) */}
+                      {([
+                        { key: "Micro",   Icon: LockerMicroIcon,   color: "#4ade80", count: stats.sizeCounts.Micro,   col: 4 },
+                        { key: "Mini",    Icon: LockerMiniIcon,    color: "#38bdf8", count: stats.sizeCounts.Mini,    col: 5 },
+                        { key: "Medium",  Icon: LockerMediumIcon,  color: "#818cf8", count: stats.sizeCounts.Medium,  col: 6 },
+                        { key: "Big",     Icon: LockerBigIcon,     color: "#e879f9", count: stats.sizeCounts.Big,     col: 7 },
+                        { key: "Biggest", Icon: LockerBiggestIcon, color: "#f87171", count: stats.sizeCounts.Biggest, col: 8 },
+                      ] as const).map(({ key, Icon, color, count, col }) => (
+                        <div key={key} className="metric" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, gridColumn: col, gridRow: 1 }}>
+                          <span style={{ color, lineHeight: 0 }}><Icon /></span>
+                          <div className="metric-label" style={{ textAlign: "center" }}>{key}</div>
+                          <div className="metric-value" style={{ textAlign: "center" }}>{count}</div>
+                        </div>
+                      ))}
+
+                      {/* See more — row 1 col 9, spans both rows */}
+                      <div style={{ gridColumn: 9, gridRow: "1 / 3", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                         <Button
                           variant="contained"
-                          color="primary"
                           className="see-more-btn"
-                          onClick={() => {
-                            window.location.href = `/master/MADV${mlockerId}`;
-                          }}
-                          sx={{
-                            borderRadius: 2,
-                            textTransform: "none",
-                            minWidth: { xs: 0, sm: 120 },
-                            padding: "8px 16px",
-                            alignSelf: { xs: "stretch", md: "center" },
-                          }}
+                          onClick={() => { window.location.href = `/master/MADV${mlockerId}`; }}
+                          sx={{ borderRadius: 2, textTransform: "none", minWidth: 110, padding: "8px 16px" }}
                         >
                           See more
                         </Button>

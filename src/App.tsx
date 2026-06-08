@@ -137,7 +137,8 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
                   autoFocus
                   placeholder="Enter your User ID"
                   className="login-field"
-                  InputProps={{ sx: { borderRadius: 1 } }}
+                  sx={{ width: "100%" }}
+                  InputProps={{ sx: { borderRadius: 1, width: "100%" } }}
                 />
               </div>
 
@@ -152,6 +153,8 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
                   required
                   placeholder="Enter your password"
                   className="login-field"
+                  sx={{ width: "100%" }}
+                  InputProps={{ sx: { borderRadius: 1, width: "100%" } }}
                 />
               </div>
 
@@ -165,8 +168,8 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
                 type="submit"
                 variant="contained"
                 color="primary"
-                fullWidth
                 className="login-submit"
+                sx={{ width: "100%", display: "block" }}
               >
                 Sign in
               </Button>
@@ -570,6 +573,16 @@ function App() {
   const handleLogin = (token: string) => {
     setToken(token);
     setLoggedIn(true);
+    // Always land on dashboard after login
+    setCurrentPage("dashboard");
+    setShowLockersPage(false);
+    setShowInventoryPage(false);
+    setShowApprovalPage(false);
+    setShowAddItemPage(false);
+    setShowAddUserPage(false);
+    setShowProfilePage(false);
+    setMasterModeActive(false);
+    window.history.replaceState({}, "", "/dashboard");
   };
 
   const handleLoginSuccess = async (userId: string) => {
