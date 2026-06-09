@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Avatar, Chip, Divider, CircularProgress } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
 import BadgeIcon from "@mui/icons-material/Badge";
 import BusinessIcon from "@mui/icons-material/Business";
 import SecurityIcon from "@mui/icons-material/Security";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import { fetchAppUsers } from "./APIService";
+import { fetchAppUsers, fetchUserProfile, fetchUserFromUsersTable } from "./APIService";
 
 interface ProfilePageProps {
   userName?: string | null;
@@ -62,6 +60,7 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
 
 export default function ProfilePage({ userName }: ProfilePageProps) {
   const [userData, setUserData] = useState<any>(null);
+  const [usersTableData, setUsersTableData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const currentUserId = sessionStorage.getItem("userId") || userName || "";
@@ -70,6 +69,27 @@ export default function ProfilePage({ userName }: ProfilePageProps) {
     let mounted = true;
     (async () => {
       try {
+        // Fetch from dbo.Users table (UserID, MEmailId, UserID_PK)
+        const usersRow = await fetchUserFromUsersTable(currentUserId);
+        if (mounted && usersRow) setUsersTableData(usersRow);
+
+        // 1. Try dedicated profile endpoint (AppUsers)
+        const profile = await fetchUserProfile(currentUserId);
+        if (mounted && profile) { setUserData(profile); setLoading(false); return; }
+
+        // 2. Try login body cached in sessionStorage
+        try {
+          const cached = sessionStorage.getItem("userProfile");
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            const id = parsed?.UserID ?? parsed?.userId ?? parsed?.AppUserId ?? "";
+            if (String(id).toLowerCase() === String(currentUserId).toLowerCase()) {
+              if (mounted) { setUserData(parsed); setLoading(false); return; }
+            }
+          }
+        } catch {}
+
+        // 3. Fallback: search AppUsers list
         const users = await fetchAppUsers();
         if (!mounted) return;
         const found = Array.isArray(users)
@@ -80,7 +100,7 @@ export default function ProfilePage({ userName }: ProfilePageProps) {
           : null;
         setUserData(found || null);
       } catch (err) {
-        console.error("ProfilePage: fetchAppUsers error", err);
+        console.error("ProfilePage fetch error", err);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -88,12 +108,21 @@ export default function ProfilePage({ userName }: ProfilePageProps) {
     return () => { mounted = false; };
   }, [currentUserId]);
 
-  const name       = userData?.UserName   ?? userData?.userName   ?? currentUserId  ?? "Admin";
-  const email      = userData?.EmailID    ?? userData?.emailID    ?? userData?.Email ?? "—";
-  const phone      = userData?.Phone      ?? userData?.phone      ?? "—";
-  const managerId  = userData?.MUserID    ?? userData?.mUserID    ?? userData?.ManagerId ?? "—";
-  const managerEmail = userData?.MEmailId ?? userData?.mEmailId   ?? "—";
-  const userId     = userData?.AppUserId  ?? userData?.appUserId  ?? currentUserId;
+  // All three fields sourced from dbo.Users first, AppUsers as fallback
+  const userId    = usersTableData?.UserID    ?? usersTableData?.userId
+                 ?? userData?.AppUserId ?? userData?.appUserId ?? userData?.UserID
+                 ?? currentUserId;
+
+  const name      = usersTableData?.UserName  ?? usersTableData?.FullName ?? usersTableData?.fullName
+                 ?? usersTableData?.Name       ?? usersTableData?.DisplayName
+                 ?? userData?.UserName ?? userData?.userName
+                 ?? String(userId);
+
+  const managerId = usersTableData?.ManagerID ?? usersTableData?.managerId
+                 ?? usersTableData?.MUserID   ?? usersTableData?.mUserID
+                 ?? usersTableData?.MUserId   ?? usersTableData?.ManagerId
+                 ?? userData?.MUserID  ?? userData?.mUserID
+                 ?? "—";
   const initials   = String(name).charAt(0).toUpperCase();
 
   if (loading) {
@@ -158,22 +187,6 @@ export default function ProfilePage({ userName }: ProfilePageProps) {
 
       {/* Info sections */}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 3 }}>
-
-        {/* Contact info */}
-        <Box sx={{ borderRadius: 3, border: "1px solid rgba(167,139,250,0.15)", backgroundColor: "var(--card-bg)", overflow: "hidden" }}>
-          <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid rgba(167,139,250,0.1)" }}>
-            <Typography sx={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Contact Information
-            </Typography>
-          </Box>
-          <Box sx={{ py: 0.5 }}>
-            <InfoRow icon={<EmailIcon sx={{ fontSize: 18 }} />} label="Email" value={email} />
-            <Divider sx={{ borderColor: "rgba(167,139,250,0.08)", mx: 2 }} />
-            <InfoRow icon={<PhoneIcon sx={{ fontSize: 18 }} />} label="Phone" value={String(phone)} />
-            <Divider sx={{ borderColor: "rgba(167,139,250,0.08)", mx: 2 }} />
-            <InfoRow icon={<EmailIcon sx={{ fontSize: 18 }} />} label="Manager Email" value={managerEmail} />
-          </Box>
-        </Box>
 
         {/* Account details */}
         <Box sx={{ borderRadius: 3, border: "1px solid rgba(167,139,250,0.15)", backgroundColor: "var(--card-bg)", overflow: "hidden" }}>

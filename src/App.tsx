@@ -92,6 +92,12 @@ function Login({ onLogin, onLoginSuccess }: LoginProps) {
         onLogin(response.token);
         sessionStorage.setItem("token", response.token);
         sessionStorage.setItem("userId", userId);
+        // Store full login body for profile page
+        if (response.body) {
+          try { sessionStorage.setItem("userProfile", JSON.stringify(response.body)); } catch {}
+          const mEmail = response.body?.MEmailId ?? response.body?.mEmailId ?? response.body?.ManagerEmail ?? null;
+          if (mEmail) sessionStorage.setItem("userMEmailId", String(mEmail));
+        }
         // Call onLoginSuccess callback to trigger API calls
         if (onLoginSuccess) {
           onLoginSuccess(userId);

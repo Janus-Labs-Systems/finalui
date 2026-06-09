@@ -816,6 +816,71 @@ export async function addAppUser(data: {
   }
 }
 
+// Fetch user record from dbo.Users table (UserID, UserName, ManagerID, MEmailId, UserID_PK)
+export async function fetchUserFromUsersTable(userId: string): Promise<any | null> {
+  const token = getSessionToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const params = { UserID: userId, userId, Id: userId };
+  const endpoints = [
+    `${API_BASE_URL}/GetUsers`,
+    `${API_BASE_URL}/GetUserById`,
+    `${API_BASE_URL}/GetUser`,
+    `${API_BASE_URL}/AppUserData`,
+    `${API_BASE_URL}/GetAppUserData`,
+    `${API_BASE_URL}/GetUserProfile`,
+  ];
+  for (const url of endpoints) {
+    try {
+      const resp = await axios.get(url, { params, headers, validateStatus: () => true });
+      if (resp.status >= 200 && resp.status < 300 && resp.data) {
+        const arr = Array.isArray(resp.data) ? resp.data : [resp.data];
+        const match = arr.find((u: any) => {
+          const id = u?.UserID ?? u?.userId ?? u?.UserId ?? "";
+          return String(id).toLowerCase() === String(userId).toLowerCase();
+        });
+        if (match) return match;
+        if (arr.length > 0 && arr[0]) return arr[0];
+      }
+    } catch {}
+  }
+  return null;
+}
+
+// Fetch current user's profile using GetAppUsersByManagerSP
+export async function fetchUserProfile(userId: string): Promise<any | null> {
+  const token = getSessionToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  // GetAppUsersByManagerSP — returns AppUsers where MUserID = userId (manager)
+  // The logged-in user's own record is included in the result
+  const endpoints = [
+    { method: "get",  url: `${API_BASE_URL}/GetAppUsersByManager`, params: { mUserId: userId, MUserID: userId } },
+    { method: "get",  url: `${API_BASE_URL}/GetAppUserByManager`,  params: { mUserId: userId } },
+    { method: "post", url: `${API_BASE_URL}/GetAppUsersByManager`, body: { mUserId: userId, MUserID: userId } },
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const resp = ep.method === "get"
+        ? await axios.get(ep.url, { params: ep.params, headers, validateStatus: () => true })
+        : await axios.post(ep.url, ep.body, { headers, validateStatus: () => true });
+
+      if (resp.status >= 200 && resp.status < 300 && resp.data) {
+        const arr = Array.isArray(resp.data) ? resp.data : [resp.data];
+        // Find the current user in the returned list
+        const match = arr.find((u: any) => {
+          const id = u?.AppUserId ?? u?.appUserId ?? u?.UserID ?? u?.UserId ?? u?.userId ?? "";
+          return String(id).toLowerCase() === String(userId).toLowerCase();
+        });
+        if (match) return match;
+        // If no exact match but array has data (user manages themselves), return first
+        if (arr.length > 0 && arr[0]) return arr[0];
+      }
+    } catch {}
+  }
+  return null;
+}
+
 // Fetch all application users
 export async function fetchAppUsers(): Promise<any[]> {
   const token = getSessionToken();
